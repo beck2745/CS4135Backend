@@ -31,7 +31,8 @@ public class AuthController {
         User user = registrationService.register(
                 request.getEmail(),
                 request.getPassword(),
-                request.getRole()
+                request.getRole(),
+                request.getUserId()
         );
 
         String token = tokenService.generateToken(user);
@@ -40,7 +41,8 @@ public class AuthController {
                 token,
                 user.getEmail(),
                 user.getRole().name(),
-                user.getStatus().name()
+                user.getStatus().name(),
+                user.getUserId()
         );
     }
 
@@ -57,7 +59,8 @@ public class AuthController {
                 token,
                 user.getEmail(),
                 user.getRole().name(),
-                user.getStatus().name()
+                user.getStatus().name(),
+                user.getUserId()
         );
     }
 }
