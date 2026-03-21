@@ -28,11 +28,12 @@ public class User {
 
     public User() {}
 
-    public User(String email, String passwordHash, UserRole role, AccountState status) {
+    public User(String email, String passwordHash, UserRole role, AccountState status, Long userId) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
         this.status = status;
+        this.userId=userId;
     }
 
     public Long getUserId() { return userId; }
