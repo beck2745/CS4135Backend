@@ -19,11 +19,28 @@ public class TutorSkill {
 
     private String proficiencyLevel;
 
+    /** Display label for broad area (e.g. Academic Skills). */
+    private String category;
+
+    /** Display label for sub-area (e.g. Mathematics). */
+    private String subcategory;
+
+    @Column(length = 2000)
+    private String experienceNote;
+
     public TutorSkill() {}
 
-    public TutorSkill(String name, String proficiencyLevel) {
+    public TutorSkill(
+            String name,
+            String proficiencyLevel,
+            String category,
+            String subcategory,
+            String experienceNote) {
         this.name = name;
         this.proficiencyLevel = proficiencyLevel;
+        this.category = category;
+        this.subcategory = subcategory;
+        this.experienceNote = experienceNote;
     }
 
     public Long getId() {
@@ -52,5 +69,29 @@ public class TutorSkill {
 
     public void setProficiencyLevel(String proficiencyLevel) {
         this.proficiencyLevel = proficiencyLevel;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getSubcategory() {
+        return subcategory;
+    }
+
+    public void setSubcategory(String subcategory) {
+        this.subcategory = subcategory;
+    }
+
+    public String getExperienceNote() {
+        return experienceNote;
+    }
+
+    public void setExperienceNote(String experienceNote) {
+        this.experienceNote = experienceNote;
     }
 }
