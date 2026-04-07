@@ -6,13 +6,16 @@ import com.example.demo.model.Booking;
 import com.example.demo.model.BookingStatus;
 import com.example.demo.model.Message;
 import com.example.demo.model.MessageThread;
+import com.example.demo.repository.BlockedContentRepository;
 import com.example.demo.repository.BookingRepository;
 import com.example.demo.repository.MessageRepository;
 import com.example.demo.repository.MessageThreadRepository;
+import com.example.demo.valueobject.ContentType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
@@ -20,13 +23,16 @@ public class MessageService {
     private final MessageThreadRepository threadRepository;
     private final MessageRepository messageRepository;
     private final BookingRepository bookingRepository;
+    private final BlockedContentRepository blockedContentRepository;
 
     public MessageService(MessageThreadRepository threadRepository,
             MessageRepository messageRepository,
-            BookingRepository bookingRepository) {
+            BookingRepository bookingRepository,
+            BlockedContentRepository blockedContentRepository) {
         this.threadRepository = threadRepository;
         this.messageRepository = messageRepository;
         this.bookingRepository = bookingRepository;
+        this.blockedContentRepository = blockedContentRepository;
     }
 
     public MessageThread createThread(Long bookingId) {
@@ -69,12 +75,19 @@ public class MessageService {
             throw new ConflictException("Only the student or tutor of this booking can send messages");
         }
 
+        if (blockedContentRepository.existsByContentTypeAndContentId(ContentType.USER, senderId)) {
+            throw new ConflictException("Your account has been blocked and cannot send messages");
+        }
+
         Message message = new Message(threadId, senderId, content, LocalDateTime.now());
         return messageRepository.save(message);
     }
 
     public List<Message> getMessages(Long threadId) {
         getThreadById(threadId);
-        return messageRepository.findByThreadIdOrderBySentAtAsc(threadId);
+        return messageRepository.findByThreadIdOrderBySentAtAsc(threadId).stream()
+                .filter(m -> !blockedContentRepository
+                        .existsByContentTypeAndContentId(ContentType.MESSAGE, m.getMessageId()))
+                .collect(Collectors.toList());
     }
 }
