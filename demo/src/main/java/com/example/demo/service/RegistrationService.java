@@ -19,9 +19,15 @@ public class RegistrationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User register(String email, String password, UserRole role, Long userId) {
+    private static final String ADMIN_SECRET = "admin123";
+
+    public User register(String email, String password, UserRole role, Long userId, String adminCode) {
         if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException("Email already exists");
+        }
+
+        if (role == UserRole.ADMIN && !ADMIN_SECRET.equals(adminCode)) {
+            throw new IllegalArgumentException("Invalid admin code");
         }
 
         String hashedPassword = passwordEncoder.encode(password);

@@ -32,7 +32,8 @@ public class AuthController {
                 request.getEmail(),
                 request.getPassword(),
                 request.getRole(),
-                request.getUserId()
+                request.getUserId(),
+                request.getAdminCode()
         );
 
         String token = tokenService.generateToken(user);
