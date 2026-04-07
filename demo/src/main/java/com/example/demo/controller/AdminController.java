@@ -1,8 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AdminActionLogDTO;
+import com.example.demo.dto.BlockedContentDTO;
 import com.example.demo.dto.ReportResponseDTO;
 import com.example.demo.service.AdminService;
+import com.example.demo.valueobject.ContentType;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,5 +49,37 @@ public class AdminController {
     @GetMapping("/reports/{reportId}/audit-log")
     public List<AdminActionLogDTO> getAuditLogForReport(@PathVariable Long reportId) {
         return adminService.getAuditLogForReport(reportId);
+    }
+
+    // Block a piece of content
+    @PostMapping("/block")
+    @ResponseStatus(HttpStatus.CREATED)
+    public BlockedContentDTO blockContent(
+            @RequestParam ContentType contentType,
+            @RequestParam Long contentId,
+            @RequestParam Long adminId,
+            @RequestParam(required = false, defaultValue = "") String reason
+    ) {
+        return adminService.blockContent(contentType, contentId, adminId, reason);
+    }
+
+    // Unblock a piece of content
+    @DeleteMapping("/block")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unblockContent(
+            @RequestParam ContentType contentType,
+            @RequestParam Long contentId,
+            @RequestParam Long adminId,
+            @RequestParam(required = false, defaultValue = "") String reason
+    ) {
+        adminService.unblockContent(contentType, contentId, adminId, reason);
+    }
+
+    // List all blocked content, optionally filtered by type
+    @GetMapping("/blocked")
+    public List<BlockedContentDTO> getBlocked(
+            @RequestParam(required = false) ContentType contentType
+    ) {
+        return adminService.getBlocked(contentType);
     }
 }

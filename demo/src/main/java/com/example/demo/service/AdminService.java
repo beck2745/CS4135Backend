@@ -1,14 +1,18 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.AdminActionLogDTO;
+import com.example.demo.dto.BlockedContentDTO;
 import com.example.demo.dto.ReportResponseDTO;
 import com.example.demo.entity.AdminActionLog;
+import com.example.demo.entity.BlockedContent;
 import com.example.demo.entity.Report;
 import com.example.demo.exception.ConflictException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.repository.AdminActionLogRepository;
+import com.example.demo.repository.BlockedContentRepository;
 import com.example.demo.repository.ReportRepository;
 import com.example.demo.valueobject.AdminActionType;
+import com.example.demo.valueobject.ContentType;
 import com.example.demo.valueobject.ReportStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,11 +25,14 @@ public class AdminService {
 
     private final ReportRepository reportRepository;
     private final AdminActionLogRepository actionLogRepository;
+    private final BlockedContentRepository blockedContentRepository;
 
     public AdminService(ReportRepository reportRepository,
-                        AdminActionLogRepository actionLogRepository) {
+                        AdminActionLogRepository actionLogRepository,
+                        BlockedContentRepository blockedContentRepository) {
         this.reportRepository = reportRepository;
         this.actionLogRepository = actionLogRepository;
+        this.blockedContentRepository = blockedContentRepository;
     }
 
     @Transactional
@@ -69,6 +76,44 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public BlockedContentDTO blockContent(ContentType contentType, Long contentId, Long adminId, String reason) {
+        if (blockedContentRepository.existsByContentTypeAndContentId(contentType, contentId)) {
+            throw new ConflictException("This content is already blocked");
+        }
+
+        BlockedContent saved = blockedContentRepository.save(
+                new BlockedContent(contentType, contentId, adminId, reason));
+
+        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.BLOCK_CONTENT, contentId, reason));
+
+        return toBlockedDTO(saved);
+    }
+
+    @Transactional
+    public void unblockContent(ContentType contentType, Long contentId, Long adminId, String reason) {
+        BlockedContent blocked = blockedContentRepository.findByContentTypeAndContentId(contentType, contentId)
+                .orElseThrow(() -> new ResourceNotFoundException("No block found for this content"));
+
+        blockedContentRepository.delete(blocked);
+
+        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.UNBLOCK_CONTENT, contentId, reason));
+    }
+
+    @Transactional(readOnly = true)
+    public List<BlockedContentDTO> getBlocked(ContentType contentType) {
+        List<BlockedContent> results = contentType != null
+                ? blockedContentRepository.findByContentTypeOrderByBlockedAtDesc(contentType)
+                : blockedContentRepository.findAllByOrderByBlockedAtDesc();
+
+        return results.stream().map(this::toBlockedDTO).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isBlocked(ContentType contentType, Long contentId) {
+        return blockedContentRepository.existsByContentTypeAndContentId(contentType, contentId);
+    }
+
     // Only OPEN reports can be acted on
     private Report getOpenReport(Long reportId) {
         Report report = reportRepository.findById(reportId)
@@ -100,6 +145,17 @@ public class AdminService {
                 log.getReportId(),
                 log.getNotes(),
                 log.getPerformedAt()
+        );
+    }
+
+    private BlockedContentDTO toBlockedDTO(BlockedContent b) {
+        return new BlockedContentDTO(
+                b.getId(),
+                b.getContentType(),
+                b.getContentId(),
+                b.getBlockedByAdminId(),
+                b.getReason(),
+                b.getBlockedAt()
         );
     }
 }
