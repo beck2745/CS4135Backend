@@ -1,0 +1,50 @@
+package com.example.demo.controller;
+
+import com.example.demo.dto.AdminActionLogDTO;
+import com.example.demo.dto.ReportResponseDTO;
+import com.example.demo.service.AdminService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin")
+@CrossOrigin(origins = "http://localhost:5173")
+public class AdminController {
+
+    private final AdminService adminService;
+
+    public AdminController(AdminService adminService) {
+        this.adminService = adminService;
+    }
+
+    // Mark a report as reviewed (admin has looked at it and it warrants action)
+    @PatchMapping("/reports/{reportId}/review")
+    public ReportResponseDTO reviewReport(
+            @PathVariable Long reportId,
+            @RequestParam Long adminId,
+            @RequestParam(required = false, defaultValue = "") String notes) {
+        return adminService.reviewReport(reportId, adminId, notes);
+    }
+
+    // Dismiss a report (admin has looked at it and it is not a problem)
+    @PatchMapping("/reports/{reportId}/dismiss")
+    public ReportResponseDTO dismissReport(
+            @PathVariable Long reportId,
+            @RequestParam Long adminId,
+            @RequestParam(required = false, defaultValue = "") String notes) {
+        return adminService.dismissReport(reportId, adminId, notes);
+    }
+
+    // Full audit log of all admin actions
+    @GetMapping("/audit-log")
+    public List<AdminActionLogDTO> getAuditLog() {
+        return adminService.getAuditLog();
+    }
+
+    // Audit log scoped to a single report
+    @GetMapping("/reports/{reportId}/audit-log")
+    public List<AdminActionLogDTO> getAuditLogForReport(@PathVariable Long reportId) {
+        return adminService.getAuditLogForReport(reportId);
+    }
+}
