@@ -33,4 +33,16 @@ public class AuthenticationService {
 
         return user;
     }
+     public User updateProfile(Long userId, String name) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setName(name);
+        return userRepository.save(user);
+    }
+
+    public User getUserById(Long userId) {
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 }
