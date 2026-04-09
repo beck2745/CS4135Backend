@@ -22,4 +22,7 @@ public class RegisterRequestDTO {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+    private String adminCode;
+    public String getAdminCode() { return adminCode; }
+    public void setAdminCode(String adminCode) { this.adminCode = adminCode; }
 }

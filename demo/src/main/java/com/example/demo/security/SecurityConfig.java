@@ -22,7 +22,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/bookings/**", "/api/bookings", "/api/tutors/**", "/api/messages/**",
-                                "/h2-console/**", "/api/student-profiles/**", "/api/auth/profile/**")
+                                "/h2-console/**", "/api/student-profiles/**",
+                                "/api/reports/**", "/api/admin/**")
                         .permitAll().anyRequest().authenticated())
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .httpBasic(Customizer.withDefaults());
