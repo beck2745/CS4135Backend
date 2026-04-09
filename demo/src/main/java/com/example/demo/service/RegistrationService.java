@@ -19,14 +19,14 @@ public class RegistrationService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User register(String email, String password, UserRole role, Long userId) {
+    public User register(String email, String password, UserRole role, Long userId, String name) {
         if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
 
         String hashedPassword = passwordEncoder.encode(password);
 
-        User user = new User(email, hashedPassword, role, AccountState.ACTIVE, userId);
+        User user = new User(email, hashedPassword, role, AccountState.ACTIVE, userId, name);
         return userRepository.save(user);
     }
 }
