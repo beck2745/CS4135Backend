@@ -10,9 +10,11 @@ import com.example.demo.entity.User;
 import com.example.demo.exception.ConflictException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.VerificationStatus;
+import com.example.demo.repository.BlockedContentRepository;
 import com.example.demo.repository.TutorProfileRepository;
 import com.example.demo.repository.TutorSkillRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.valueobject.ContentType;
 import com.example.demo.valueobject.UserRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,14 +37,17 @@ public class TutorProfileService {
     private final TutorProfileRepository tutorProfileRepository;
     private final TutorSkillRepository tutorSkillRepository;
     private final UserRepository userRepository;
+    private final BlockedContentRepository blockedContentRepository;
 
     public TutorProfileService(
             TutorProfileRepository tutorProfileRepository,
             TutorSkillRepository tutorSkillRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            BlockedContentRepository blockedContentRepository) {
         this.tutorProfileRepository = tutorProfileRepository;
         this.tutorSkillRepository = tutorSkillRepository;
         this.userRepository = userRepository;
+        this.blockedContentRepository = blockedContentRepository;
     }
 
     @Transactional(readOnly = true)
@@ -76,6 +81,8 @@ public class TutorProfileService {
                 .filter(p -> min <= 0
                         || (p.getAverageRating() != null && p.getAverageRating() >= min))
                 .filter(p -> profFilter.isEmpty() || hasProficiency(p, profFilter))
+                .filter(p -> !blockedContentRepository
+                        .existsByContentTypeAndContentId(ContentType.TUTOR_PROFILE, p.getTutorProfileId()))
                 .collect(Collectors.toList());
 
         if (query.isEmpty()) {
@@ -166,6 +173,10 @@ public class TutorProfileService {
     public TutorProfileResponseDTO getByUserId(Long userId) {
         TutorProfile p = tutorProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tutor profile not found"));
+        if (blockedContentRepository.existsByContentTypeAndContentId(
+                ContentType.TUTOR_PROFILE, p.getTutorProfileId())) {
+            throw new ResourceNotFoundException("Tutor profile not found");
+        }
         return toResponse(p);
     }
 

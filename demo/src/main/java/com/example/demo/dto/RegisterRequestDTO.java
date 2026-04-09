@@ -18,4 +18,8 @@ public class RegisterRequestDTO {
     public void setRole(UserRole role) { this.role = role; }
 
     public Long getUserId(){ return userId;}
+
+    private String adminCode;
+    public String getAdminCode() { return adminCode; }
+    public void setAdminCode(String adminCode) { this.adminCode = adminCode; }
 }
