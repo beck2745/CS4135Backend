@@ -10,7 +10,6 @@ import com.example.demo.repository.MessageRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.AdminService;
 import com.example.demo.valueobject.ContentType;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +24,8 @@ public class AdminController {
     private final UserRepository userRepository;
 
     public AdminController(AdminService adminService,
-                           MessageRepository messageRepository,
-                           UserRepository userRepository) {
+            MessageRepository messageRepository,
+            UserRepository userRepository) {
         this.adminService = adminService;
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
@@ -46,13 +45,13 @@ public class AdminController {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    // Mark a report as reviewed (admin has looked at it and it warrants action)
-    @PatchMapping("/reports/{reportId}/review")
-    public ReportResponseDTO reviewReport(
+    // Block reported content and close the report atomically
+    @PostMapping("/reports/{reportId}/block")
+    public ReportResponseDTO blockReport(
             @PathVariable Long reportId,
             @RequestParam Long adminId,
             @RequestParam(required = false, defaultValue = "") String notes) {
-        return adminService.reviewReport(reportId, adminId, notes);
+        return adminService.blockReport(reportId, adminId, notes);
     }
 
     // Dismiss a report (admin has looked at it and it is not a problem)
@@ -76,35 +75,20 @@ public class AdminController {
         return adminService.getAuditLogForReport(reportId);
     }
 
-    // Block a piece of content
-    @PostMapping("/block")
-    @ResponseStatus(HttpStatus.CREATED)
-    public BlockedContentDTO blockContent(
-            @RequestParam ContentType contentType,
-            @RequestParam Long contentId,
-            @RequestParam Long adminId,
-            @RequestParam(required = false, defaultValue = "") String reason
-    ) {
-        return adminService.blockContent(contentType, contentId, adminId, reason);
-    }
-
     // Unblock a piece of content
     @DeleteMapping("/block")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unblockContent(
             @RequestParam ContentType contentType,
             @RequestParam Long contentId,
             @RequestParam Long adminId,
-            @RequestParam(required = false, defaultValue = "") String reason
-    ) {
+            @RequestParam(required = false, defaultValue = "") String reason) {
         adminService.unblockContent(contentType, contentId, adminId, reason);
     }
 
     // List all blocked content, optionally filtered by type
     @GetMapping("/blocked")
     public List<BlockedContentDTO> getBlocked(
-            @RequestParam(required = false) ContentType contentType
-    ) {
+            @RequestParam(required = false) ContentType contentType) {
         return adminService.getBlocked(contentType);
     }
 }
