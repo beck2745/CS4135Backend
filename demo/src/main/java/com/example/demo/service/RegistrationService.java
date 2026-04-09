@@ -21,11 +21,7 @@ public class RegistrationService {
 
     private static final String ADMIN_SECRET = "admin123";
 
-<<<<<<< HEAD
     public User register(String email, String password, UserRole role, Long userId, String adminCode, String name) {
-=======
-    public User register(String email, String password, UserRole role, Long userId, String adminCode) {
->>>>>>> origin/main
         if (userRepository.existsByEmail(email)) {
             throw new EmailAlreadyExistsException("Email already exists");
         }

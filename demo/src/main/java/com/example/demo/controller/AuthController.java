@@ -38,7 +38,7 @@ public class AuthController {
                 request.getPassword(),
                 request.getRole(),
                 request.getUserId(),
-                request.getName()
+                request.getName(),
                 request.getAdminCode()
         );
 
