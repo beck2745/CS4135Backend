@@ -3,6 +3,11 @@ package com.example.demo.controller;
 import com.example.demo.dto.AdminActionLogDTO;
 import com.example.demo.dto.BlockedContentDTO;
 import com.example.demo.dto.ReportResponseDTO;
+import com.example.demo.entity.User;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.Message;
+import com.example.demo.repository.MessageRepository;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.AdminService;
 import com.example.demo.valueobject.ContentType;
 import org.springframework.http.HttpStatus;
@@ -16,9 +21,29 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService,
+                           MessageRepository messageRepository,
+                           UserRepository userRepository) {
         this.adminService = adminService;
+        this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
+    }
+
+    // Fetch a single message by ID (for viewing reported message content)
+    @GetMapping("/messages/{id}")
+    public Message getMessageById(@PathVariable Long id) {
+        return messageRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+    }
+
+    // Fetch a user by ID (for viewing reported user details)
+    @GetMapping("/users/{id}")
+    public User getUserById(@PathVariable Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     // Mark a report as reviewed (admin has looked at it and it warrants action)

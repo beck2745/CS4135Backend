@@ -39,7 +39,7 @@ public class AdminService {
     public ReportResponseDTO reviewReport(Long reportId, Long adminId, String notes) {
         Report report = getOpenReport(reportId);
 
-        report.setStatus(ReportStatus.REVIEWED);
+        report.setStatus(ReportStatus.CLOSED);
         Report saved = reportRepository.save(report);
 
         actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.REVIEW_REPORT, reportId, notes));
@@ -85,7 +85,7 @@ public class AdminService {
         BlockedContent saved = blockedContentRepository.save(
                 new BlockedContent(contentType, contentId, adminId, reason));
 
-        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.BLOCK_CONTENT, contentId, reason));
+        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.BLOCK_CONTENT, null, reason));
 
         return toBlockedDTO(saved);
     }
@@ -97,7 +97,7 @@ public class AdminService {
 
         blockedContentRepository.delete(blocked);
 
-        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.UNBLOCK_CONTENT, contentId, reason));
+        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.UNBLOCK_CONTENT, null, reason));
     }
 
     @Transactional(readOnly = true)

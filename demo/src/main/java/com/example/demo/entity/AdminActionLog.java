@@ -20,8 +20,8 @@ public class AdminActionLog {
     @Column(nullable = false)
     private AdminActionType actionType;
 
-    // The report this action was taken on
-    @Column(nullable = false)
+    // The report this action was taken on (nullable for block/unblock actions not tied to a report)
+    @Column(nullable = true)
     private Long reportId;
 
     @Column(length = 1000)
