@@ -26,14 +26,19 @@ public class User {
     @Column(nullable = false)
     private AccountState status;
 
+    @Column(nullable = true)
+    private String name;
+
     public User() {}
 
-    public User(String email, String passwordHash, UserRole role, AccountState status, Long userId) {
+    public User(String email, String passwordHash, UserRole role, AccountState status, Long userId, String name) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
         this.status = status;
         this.userId=userId;
+        this.name = name;
+
     }
 
     public Long getUserId() { return userId; }
@@ -41,6 +46,8 @@ public class User {
     public String getPasswordHash() { return passwordHash; }
     public UserRole getRole() { return role; }
     public AccountState getStatus() { return status; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
     public void setStatus(AccountState status) { this.status = status; }
 }

@@ -7,6 +7,7 @@ public class RegisterRequestDTO {
     private String password;
     private UserRole role;
     private Long userId;
+    private String name;
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -18,4 +19,10 @@ public class RegisterRequestDTO {
     public void setRole(UserRole role) { this.role = role; }
 
     public Long getUserId(){ return userId;}
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    private String adminCode;
+    public String getAdminCode() { return adminCode; }
+    public void setAdminCode(String adminCode) { this.adminCode = adminCode; }
 }

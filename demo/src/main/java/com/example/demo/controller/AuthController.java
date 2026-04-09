@@ -8,6 +8,11 @@ import com.example.demo.service.AuthenticationService;
 import com.example.demo.service.RegistrationService;
 import com.example.demo.service.TokenService;
 import org.springframework.web.bind.annotation.*;
+import com.example.demo.dto.UpdateProfileRequest;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import com.example.demo.service.StudentProfileService;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,7 +37,9 @@ public class AuthController {
                 request.getEmail(),
                 request.getPassword(),
                 request.getRole(),
-                request.getUserId()
+                request.getUserId(),
+                request.getName()
+                request.getAdminCode()
         );
 
         String token = tokenService.generateToken(user);
@@ -42,7 +49,8 @@ public class AuthController {
                 user.getEmail(),
                 user.getRole().name(),
                 user.getStatus().name(),
-                user.getUserId()
+                user.getUserId(),
+                user.getName()
         );
     }
 
@@ -60,7 +68,42 @@ public class AuthController {
                 user.getEmail(),
                 user.getRole().name(),
                 user.getStatus().name(),
-                user.getUserId()
+                user.getUserId(),
+                user.getName()
         );
     }
+
+    @PutMapping("/profile/{userId}")
+public AuthResponseDTO updateProfile(
+        @PathVariable Long userId,
+        @RequestBody UpdateProfileRequest request
+) {
+    User user = authenticationService.updateProfile(userId, request.getName());
+
+    String token = tokenService.generateToken(user);
+
+    return new AuthResponseDTO(
+            token,
+            user.getEmail(),
+            user.getRole().name(),
+            user.getStatus().name(),
+            user.getUserId(),
+            user.getName()
+    );
+}
+
+@GetMapping("/profile/{userId}")
+public AuthResponseDTO getProfile(@PathVariable Long userId) {
+    User user = authenticationService.getUserById(userId);
+    String token = tokenService.generateToken(user);
+    return new AuthResponseDTO(
+            token,
+            user.getEmail(),
+            user.getRole().name(),
+            user.getStatus().name(),
+            user.getUserId(),
+            user.getName()
+    );
+}
+
 }
