@@ -7,6 +7,7 @@ import com.example.demo.entity.User;
 import com.example.demo.service.AuthenticationService;
 import com.example.demo.service.RegistrationService;
 import com.example.demo.service.TokenService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import com.example.demo.dto.UpdateProfileRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public AuthResponseDTO register(@RequestBody RegisterRequestDTO request) {
+    public AuthResponseDTO register(@Valid @RequestBody RegisterRequestDTO request) {
         User user = registrationService.register(
                 request.getEmail(),
                 request.getPassword(),

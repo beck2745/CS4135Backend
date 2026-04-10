@@ -1,9 +1,15 @@
 package com.example.demo.dto;
 
 import com.example.demo.valueobject.UserRole;
+import jakarta.validation.constraints.Pattern;
 
 public class RegisterRequestDTO {
     private String email;
+
+    @Pattern(
+            regexp = "^(?=.*\\d).{5,}$",
+            message = "Password must be at least 5 characters long and contain at least one number"
+    )
     private String password;
     private UserRole role;
     private Long userId;
