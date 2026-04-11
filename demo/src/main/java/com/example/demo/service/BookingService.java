@@ -6,6 +6,7 @@ import com.example.demo.model.Booking;
 import com.example.demo.model.BookingStatus;
 import com.example.demo.repository.BookingRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ public class BookingService {
         this.bookingRepository = bookingRepository;
     }
 
+    @Transactional(timeout = 5)
     public Booking createBooking(Booking booking){
         booking.setStatus(BookingStatus.PENDING);
         return bookingRepository.save(booking);
@@ -42,6 +44,7 @@ public class BookingService {
             .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
     }
 
+    @Transactional(timeout = 5)
     public Booking approveBooking(Long id) {
         Booking booking = getBookingById(id);
 
@@ -60,18 +63,21 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
+    @Transactional(timeout = 5)
     public Booking rejectBooking(Long id){
         Booking booking = getBookingById(id);
         booking.setStatus(BookingStatus.REJECTED);
         return bookingRepository.save(booking);
     }
 
+    @Transactional(timeout = 5)
     public Booking cancelBooking(Long id){
         Booking booking = getBookingById(id);
         booking.setStatus(BookingStatus.CANCELLED);
         return bookingRepository.save(booking);
     }
 
+    @Transactional(timeout = 5)
     public Booking completeBooking(Long id){
         Booking booking = getBookingById(id);
         booking.setStatus(BookingStatus.COMPLETED);
