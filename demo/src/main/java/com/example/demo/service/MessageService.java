@@ -7,11 +7,9 @@ import com.example.demo.model.Booking;
 import com.example.demo.model.BookingStatus;
 import com.example.demo.model.Message;
 import com.example.demo.model.MessageThread;
-import com.example.demo.repository.BlockedContentRepository;
 import com.example.demo.repository.BookingRepository;
 import com.example.demo.repository.MessageRepository;
 import com.example.demo.repository.MessageThreadRepository;
-import com.example.demo.valueobject.ContentType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,7 +18,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
@@ -41,16 +38,13 @@ public class MessageService {
     private final MessageThreadRepository threadRepository;
     private final MessageRepository messageRepository;
     private final BookingRepository bookingRepository;
-    private final BlockedContentRepository blockedContentRepository;
 
     public MessageService(MessageThreadRepository threadRepository,
                           MessageRepository messageRepository,
-                          BookingRepository bookingRepository,
-                          BlockedContentRepository blockedContentRepository) {
+                          BookingRepository bookingRepository) {
         this.threadRepository = threadRepository;
         this.messageRepository = messageRepository;
         this.bookingRepository = bookingRepository;
-        this.blockedContentRepository = blockedContentRepository;
     }
 
     private void checkCircuit() {
@@ -148,10 +142,6 @@ public class MessageService {
 
         return executeWithResilience(() -> {
 
-            if (blockedContentRepository.existsByContentTypeAndContentId(ContentType.USER, senderId)) {
-                throw new ConflictException("Your account has been blocked and cannot send messages");
-            }
-
             MessageThread thread = getThreadById(threadId);
 
             Booking booking = bookingRepository.findById(thread.getBookingId())
@@ -180,10 +170,7 @@ public class MessageService {
 
         return executeWithResilience(() -> {
             getThreadById(threadId);
-            return messageRepository.findByThreadIdOrderBySentAtAsc(threadId).stream()
-                    .filter(m -> !blockedContentRepository
-                            .existsByContentTypeAndContentId(ContentType.MESSAGE, m.getMessageId()))
-                    .collect(Collectors.toList());
+            return messageRepository.findByThreadIdOrderBySentAtAsc(threadId);
         });
     }
 }
