@@ -28,21 +28,26 @@ public class AdminService {
     private final BlockedContentRepository blockedContentRepository;
 
     public AdminService(ReportRepository reportRepository,
-                        AdminActionLogRepository actionLogRepository,
-                        BlockedContentRepository blockedContentRepository) {
+            AdminActionLogRepository actionLogRepository,
+            BlockedContentRepository blockedContentRepository) {
         this.reportRepository = reportRepository;
         this.actionLogRepository = actionLogRepository;
         this.blockedContentRepository = blockedContentRepository;
     }
 
     @Transactional
-    public ReportResponseDTO reviewReport(Long reportId, Long adminId, String notes) {
+    public ReportResponseDTO blockReport(Long reportId, Long adminId, String notes) {
         Report report = getOpenReport(reportId);
 
-        report.setStatus(ReportStatus.REVIEWED);
+        if (!blockedContentRepository.existsByContentTypeAndContentId(report.getContentType(), report.getContentId())) {
+            blockedContentRepository.save(
+                    new BlockedContent(report.getContentType(), report.getContentId(), adminId, notes));
+        }
+
+        report.setStatus(ReportStatus.CLOSED);
         Report saved = reportRepository.save(report);
 
-        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.REVIEW_REPORT, reportId, notes));
+        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.BLOCK_CONTENT, reportId, notes));
 
         return toReportResponse(saved);
     }
@@ -85,7 +90,7 @@ public class AdminService {
         BlockedContent saved = blockedContentRepository.save(
                 new BlockedContent(contentType, contentId, adminId, reason));
 
-        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.BLOCK_CONTENT, contentId, reason));
+        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.BLOCK_CONTENT, null, reason));
 
         return toBlockedDTO(saved);
     }
@@ -97,7 +102,7 @@ public class AdminService {
 
         blockedContentRepository.delete(blocked);
 
-        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.UNBLOCK_CONTENT, contentId, reason));
+        actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.UNBLOCK_CONTENT, null, reason));
     }
 
     @Transactional(readOnly = true)
@@ -133,8 +138,7 @@ public class AdminService {
                 r.getContentId(),
                 r.getReason(),
                 r.getStatus(),
-                r.getCreatedAt()
-        );
+                r.getCreatedAt());
     }
 
     private AdminActionLogDTO toLogDTO(AdminActionLog log) {
@@ -144,8 +148,7 @@ public class AdminService {
                 log.getActionType(),
                 log.getReportId(),
                 log.getNotes(),
-                log.getPerformedAt()
-        );
+                log.getPerformedAt());
     }
 
     private BlockedContentDTO toBlockedDTO(BlockedContent b) {
@@ -155,7 +158,6 @@ public class AdminService {
                 b.getContentId(),
                 b.getBlockedByAdminId(),
                 b.getReason(),
-                b.getBlockedAt()
-        );
+                b.getBlockedAt());
     }
 }

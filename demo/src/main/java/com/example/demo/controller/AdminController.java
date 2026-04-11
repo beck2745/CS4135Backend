@@ -3,9 +3,13 @@ package com.example.demo.controller;
 import com.example.demo.dto.AdminActionLogDTO;
 import com.example.demo.dto.BlockedContentDTO;
 import com.example.demo.dto.ReportResponseDTO;
+import com.example.demo.entity.User;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.model.Message;
+import com.example.demo.repository.MessageRepository;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.AdminService;
 import com.example.demo.valueobject.ContentType;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,18 +20,38 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService,
+            MessageRepository messageRepository,
+            UserRepository userRepository) {
         this.adminService = adminService;
+        this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
     }
 
-    // Mark a report as reviewed (admin has looked at it and it warrants action)
-    @PatchMapping("/reports/{reportId}/review")
-    public ReportResponseDTO reviewReport(
+    // Fetch a single message by ID (for viewing reported message content)
+    @GetMapping("/messages/{id}")
+    public Message getMessageById(@PathVariable Long id) {
+        return messageRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+    }
+
+    // Fetch a user by ID (for viewing reported user details)
+    @GetMapping("/users/{id}")
+    public User getUserById(@PathVariable Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    // Block reported content and close the report atomically
+    @PostMapping("/reports/{reportId}/block")
+    public ReportResponseDTO blockReport(
             @PathVariable Long reportId,
             @RequestParam Long adminId,
             @RequestParam(required = false, defaultValue = "") String notes) {
-        return adminService.reviewReport(reportId, adminId, notes);
+        return adminService.blockReport(reportId, adminId, notes);
     }
 
     // Dismiss a report (admin has looked at it and it is not a problem)
@@ -51,35 +75,20 @@ public class AdminController {
         return adminService.getAuditLogForReport(reportId);
     }
 
-    // Block a piece of content
-    @PostMapping("/block")
-    @ResponseStatus(HttpStatus.CREATED)
-    public BlockedContentDTO blockContent(
-            @RequestParam ContentType contentType,
-            @RequestParam Long contentId,
-            @RequestParam Long adminId,
-            @RequestParam(required = false, defaultValue = "") String reason
-    ) {
-        return adminService.blockContent(contentType, contentId, adminId, reason);
-    }
-
     // Unblock a piece of content
     @DeleteMapping("/block")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unblockContent(
             @RequestParam ContentType contentType,
             @RequestParam Long contentId,
             @RequestParam Long adminId,
-            @RequestParam(required = false, defaultValue = "") String reason
-    ) {
+            @RequestParam(required = false, defaultValue = "") String reason) {
         adminService.unblockContent(contentType, contentId, adminId, reason);
     }
 
     // List all blocked content, optionally filtered by type
     @GetMapping("/blocked")
     public List<BlockedContentDTO> getBlocked(
-            @RequestParam(required = false) ContentType contentType
-    ) {
+            @RequestParam(required = false) ContentType contentType) {
         return adminService.getBlocked(contentType);
     }
 }
