@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/bookings/**", "/api/bookings", "/api/tutors/**", "/api/messages/**",
                                 "/h2-console/**", "/api/student-profiles/**",
-                                "/api/reports/**", "/api/admin/**")
+                                "/api/reports/**", "/api/admin/**", "/api/reviews/**")
                         .permitAll().anyRequest().authenticated())
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .httpBasic(Customizer.withDefaults());
