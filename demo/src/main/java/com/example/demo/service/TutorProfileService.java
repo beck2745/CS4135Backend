@@ -84,7 +84,7 @@ public class TutorProfileService {
                 .filter(p -> !blockedContentRepository
                         .existsByContentTypeAndContentId(ContentType.TUTOR_PROFILE, p.getTutorProfileId())
                         && !blockedContentRepository
-                        .existsByContentTypeAndContentId(ContentType.USER, p.getUserId()))
+                                .existsByContentTypeAndContentId(ContentType.USER, p.getUserId()))
                 .collect(Collectors.toList());
 
         if (query.isEmpty()) {
@@ -177,7 +177,7 @@ public class TutorProfileService {
         if (blockedContentRepository.existsByContentTypeAndContentId(
                 ContentType.TUTOR_PROFILE, p.getTutorProfileId())
                 || blockedContentRepository.existsByContentTypeAndContentId(
-                ContentType.USER, p.getUserId())) {
+                        ContentType.USER, p.getUserId())) {
             throw new ResourceNotFoundException("Tutor profile not found");
         }
         return toResponse(p);
