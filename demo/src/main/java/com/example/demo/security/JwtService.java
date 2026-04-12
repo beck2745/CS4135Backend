@@ -20,6 +20,7 @@ public class JwtService implements TokenService {
     public String generateToken(User user) {
         return Jwts.builder()
                 .subject(user.getEmail())
+                .claim("userId", user.getUserId())
                 .claim("role", user.getRole().name())
                 .claim("status", user.getStatus().name())
                 .issuedAt(new Date())

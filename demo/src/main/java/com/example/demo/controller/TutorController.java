@@ -19,13 +19,20 @@ public class TutorController {
         this.tutorProfileService = tutorProfileService;
     }
 
+    @GetMapping("/skills")
+    public List<String> listSkillNames() {
+        return tutorProfileService.listDistinctSkillNames();
+    }
+
     @GetMapping("/search")
     public List<TutorSearchResultDTO> search(
             @RequestParam(required = false) String skill,
             @RequestParam(required = false) Boolean verifiedOnly,
-            @RequestParam(required = false) Double minRating
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String proficiencyLevel
     ) {
-        return tutorProfileService.search(skill, verifiedOnly, minRating);
+        return tutorProfileService.search(skill, verifiedOnly, minRating, q, proficiencyLevel);
     }
 
     @GetMapping("/profile/{tutorId}")

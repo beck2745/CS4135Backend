@@ -10,28 +10,62 @@ import com.example.demo.entity.User;
 import com.example.demo.exception.ConflictException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.VerificationStatus;
+import com.example.demo.repository.BlockedContentRepository;
 import com.example.demo.repository.TutorProfileRepository;
+import com.example.demo.repository.TutorSkillRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.valueobject.ContentType;
 import com.example.demo.valueobject.UserRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
 public class TutorProfileService {
 
     private final TutorProfileRepository tutorProfileRepository;
+    private final TutorSkillRepository tutorSkillRepository;
     private final UserRepository userRepository;
+    private final BlockedContentRepository blockedContentRepository;
 
-    public TutorProfileService(TutorProfileRepository tutorProfileRepository, UserRepository userRepository) {
+    public TutorProfileService(
+            TutorProfileRepository tutorProfileRepository,
+            TutorSkillRepository tutorSkillRepository,
+            UserRepository userRepository,
+            BlockedContentRepository blockedContentRepository) {
         this.tutorProfileRepository = tutorProfileRepository;
+        this.tutorSkillRepository = tutorSkillRepository;
         this.userRepository = userRepository;
+        this.blockedContentRepository = blockedContentRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<TutorSearchResultDTO> search(String skill, Boolean verifiedOnly, Double minRating) {
+    public List<String> listDistinctSkillNames() {
+        Collection<String> seen = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        seen.addAll(tutorSkillRepository.findDistinctSkillNames());
+        List<String> out = new ArrayList<>(seen);
+        out.sort(String.CASE_INSENSITIVE_ORDER);
+        return out;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TutorSearchResultDTO> search(
+            String skill,
+            Boolean verifiedOnly,
+            Double minRating,
+            String q,
+            String proficiencyLevel) {
         String skillFilter = skill != null ? skill.trim() : "";
         List<TutorProfile> candidates = skillFilter.isEmpty()
                 ? tutorProfileRepository.findAll()
@@ -39,19 +73,92 @@ public class TutorProfileService {
 
         boolean onlyVerified = Boolean.TRUE.equals(verifiedOnly);
         double min = minRating != null ? minRating : 0.0;
+        String query = q != null ? q.trim() : "";
+        String profFilter = proficiencyLevel != null ? proficiencyLevel.trim() : "";
 
-        return candidates.stream()
+        List<TutorProfile> narrowed = candidates.stream()
                 .filter(p -> !onlyVerified || p.getVerificationStatus() == VerificationStatus.VERIFIED)
                 .filter(p -> min <= 0
                         || (p.getAverageRating() != null && p.getAverageRating() >= min))
-                .map(this::toSearchResult)
-                .sorted(Comparator.comparing(TutorSearchResultDTO::userId))
+                .filter(p -> profFilter.isEmpty() || hasProficiency(p, profFilter))
+                .filter(p -> !blockedContentRepository
+                        .existsByContentTypeAndContentId(ContentType.TUTOR_PROFILE, p.getTutorProfileId()))
+                .collect(Collectors.toList());
+
+        if (query.isEmpty()) {
+            return toSortedSearchResults(narrowed);
+        }
+
+        Map<Long, User> usersById = loadUsersById(narrowed);
+        return narrowed.stream()
+                .filter(p -> {
+                    User user = usersById.get(p.getUserId());
+                    return user != null && matchesQuery(p, user, query);
+                })
+                .sorted(Comparator.comparing(TutorProfile::getUserId))
+                .map(p -> toSearchResult(p, usersById.get(p.getUserId())))
                 .collect(Collectors.toList());
     }
 
-    private TutorSearchResultDTO toSearchResult(TutorProfile p) {
-        User user = userRepository.findById(p.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found for tutor profile"));
+    private List<TutorSearchResultDTO> toSortedSearchResults(List<TutorProfile> profiles) {
+        Map<Long, User> usersById = loadUsersById(profiles);
+        return profiles.stream()
+                .sorted(Comparator.comparing(TutorProfile::getUserId))
+                .map(p -> toSearchResult(p, usersById.get(p.getUserId())))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private Map<Long, User> loadUsersById(List<TutorProfile> profiles) {
+        List<Long> ids = profiles.stream().map(TutorProfile::getUserId).distinct().toList();
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return userRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(User::getUserId, u -> u));
+    }
+
+    private static boolean hasProficiency(TutorProfile p, String filter) {
+        String f = filter.toUpperCase(Locale.ROOT);
+        return p.getSkills().stream().anyMatch(s -> {
+            String level = s.getProficiencyLevel();
+            if (level == null || level.isBlank()) {
+                return false;
+            }
+            String l = level.trim().toUpperCase(Locale.ROOT);
+            return l.equals(f) || l.contains(f);
+        });
+    }
+
+    private static boolean matchesQuery(TutorProfile p, User user, String qRaw) {
+        String needle = qRaw.toLowerCase(Locale.ROOT);
+        if (user.getEmail() != null && user.getEmail().toLowerCase(Locale.ROOT).contains(needle)) {
+            return true;
+        }
+        if (p.getBiography() != null && p.getBiography().toLowerCase(Locale.ROOT).contains(needle)) {
+            return true;
+        }
+        return p.getSkills().stream().anyMatch(s -> skillTextMatchesQuery(s, needle));
+    }
+
+    private static boolean skillTextMatchesQuery(TutorSkill s, String needle) {
+        if (s.getName() != null && s.getName().toLowerCase(Locale.ROOT).contains(needle)) {
+            return true;
+        }
+        if (s.getCategory() != null && s.getCategory().toLowerCase(Locale.ROOT).contains(needle)) {
+            return true;
+        }
+        if (s.getSubcategory() != null && s.getSubcategory().toLowerCase(Locale.ROOT).contains(needle)) {
+            return true;
+        }
+        return s.getExperienceNote() != null
+                && s.getExperienceNote().toLowerCase(Locale.ROOT).contains(needle);
+    }
+
+    private TutorSearchResultDTO toSearchResult(TutorProfile p, User user) {
+        if (user == null) {
+            return null;
+        }
         return new TutorSearchResultDTO(
                 p.getUserId(),
                 user.getEmail(),
@@ -66,6 +173,10 @@ public class TutorProfileService {
     public TutorProfileResponseDTO getByUserId(Long userId) {
         TutorProfile p = tutorProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tutor profile not found"));
+        if (blockedContentRepository.existsByContentTypeAndContentId(
+                ContentType.TUTOR_PROFILE, p.getTutorProfileId())) {
+            throw new ResourceNotFoundException("Tutor profile not found");
+        }
         return toResponse(p);
     }
 
@@ -136,9 +247,25 @@ public class TutorProfileService {
                 continue;
             }
             String level = d.proficiencyLevel() != null ? d.proficiencyLevel().trim() : "";
-            out.add(new TutorSkill(d.name().trim(), level.isEmpty() ? null : level));
+            String cat = blankToNull(d.category());
+            String sub = blankToNull(d.subcategory());
+            String note = blankToNull(d.experienceNote());
+            out.add(new TutorSkill(
+                    d.name().trim(),
+                    level.isEmpty() ? null : level,
+                    cat,
+                    sub,
+                    note));
         }
         return out;
+    }
+
+    private static String blankToNull(String s) {
+        if (s == null) {
+            return null;
+        }
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
     }
 
     private TutorProfileResponseDTO toResponse(TutorProfile p) {
@@ -154,7 +281,12 @@ public class TutorProfileService {
 
     private List<TutorSkillDTO> mapSkills(TutorProfile p) {
         return p.getSkills().stream()
-                .map(s -> new TutorSkillDTO(s.getName(), s.getProficiencyLevel()))
+                .map(s -> new TutorSkillDTO(
+                        s.getName(),
+                        s.getProficiencyLevel(),
+                        s.getCategory(),
+                        s.getSubcategory(),
+                        s.getExperienceNote()))
                 .collect(Collectors.toList());
     }
 }
