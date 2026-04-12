@@ -44,7 +44,6 @@ public class MessageService {
     private final BlockedContentRepository blockedContentRepository;
 
     public MessageService(MessageThreadRepository threadRepository,
-    public MessageService(MessageThreadRepository threadRepository,
                           MessageRepository messageRepository,
                           BookingRepository bookingRepository,
                           BlockedContentRepository blockedContentRepository) {
