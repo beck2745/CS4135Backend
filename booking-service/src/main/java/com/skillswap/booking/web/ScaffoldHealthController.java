@@ -1,4 +1,4 @@
-package main.java.com.skillswap.booking.web;
+package com.skillswap.booking.web;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
