@@ -5,6 +5,7 @@ import com.skillswap.identity.exception.EmailAlreadyExistsException;
 import com.skillswap.identity.repository.UserRepository;
 import com.skillswap.identity.valueobject.AccountState;
 import com.skillswap.identity.valueobject.UserRole;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

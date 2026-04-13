@@ -3,6 +3,7 @@ package com.skillswap.identity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skillswap.identity.dto.RegisterRequestDTO;
 import com.skillswap.identity.valueobject.UserRole;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
