@@ -5,6 +5,7 @@ import com.skillswap.identity.exception.AccountSuspendedException;
 import com.skillswap.identity.exception.InvalidCredentialsException;
 import com.skillswap.identity.repository.UserRepository;
 import com.skillswap.identity.valueobject.AccountState;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

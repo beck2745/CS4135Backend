@@ -1,6 +1,7 @@
 package com.skillswap.identity.dto;
 
 import com.skillswap.identity.valueobject.UserRole;
+
 import jakarta.validation.constraints.Pattern;
 
 public class RegisterRequestDTO {

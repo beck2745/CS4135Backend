@@ -2,6 +2,7 @@ package com.skillswap.identity.entity;
 
 import com.skillswap.identity.valueobject.AccountState;
 import com.skillswap.identity.valueobject.UserRole;
+
 import jakarta.persistence.*;
 
 @Entity
