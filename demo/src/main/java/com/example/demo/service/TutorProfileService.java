@@ -82,9 +82,7 @@ public class TutorProfileService {
                         || (p.getAverageRating() != null && p.getAverageRating() >= min))
                 .filter(p -> profFilter.isEmpty() || hasProficiency(p, profFilter))
                 .filter(p -> !blockedContentRepository
-                        .existsByContentTypeAndContentId(ContentType.TUTOR_PROFILE, p.getTutorProfileId())
-                        && !blockedContentRepository
-                                .existsByContentTypeAndContentId(ContentType.USER, p.getUserId()))
+                        .existsByContentTypeAndContentId(ContentType.TUTOR_PROFILE, p.getTutorProfileId()))
                 .collect(Collectors.toList());
 
         if (query.isEmpty()) {
@@ -167,7 +165,8 @@ public class TutorProfileService {
                 p.getBiography(),
                 mapSkills(p),
                 p.getVerificationStatus(),
-                p.getAverageRating());
+                p.getAverageRating()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -175,9 +174,7 @@ public class TutorProfileService {
         TutorProfile p = tutorProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tutor profile not found"));
         if (blockedContentRepository.existsByContentTypeAndContentId(
-                ContentType.TUTOR_PROFILE, p.getTutorProfileId())
-                || blockedContentRepository.existsByContentTypeAndContentId(
-                        ContentType.USER, p.getUserId())) {
+                ContentType.TUTOR_PROFILE, p.getTutorProfileId())) {
             throw new ResourceNotFoundException("Tutor profile not found");
         }
         return toResponse(p);
@@ -278,7 +275,8 @@ public class TutorProfileService {
                 p.getBiography(),
                 mapSkills(p),
                 p.getVerificationStatus(),
-                p.getAverageRating());
+                p.getAverageRating()
+        );
     }
 
     private List<TutorSkillDTO> mapSkills(TutorProfile p) {

@@ -4,10 +4,7 @@ import com.example.demo.exception.ConflictException;
 import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.model.Booking;
 import com.example.demo.model.BookingStatus;
-import com.example.demo.repository.BlockedContentRepository;
 import com.example.demo.repository.BookingRepository;
-import com.example.demo.repository.TutorProfileRepository;
-import com.example.demo.valueobject.ContentType;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,31 +16,12 @@ import java.util.List;
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
-    private final BlockedContentRepository blockedContentRepository;
-    private final TutorProfileRepository tutorProfileRepository;
 
-    public BookingService(BookingRepository bookingRepository,
-                          BlockedContentRepository blockedContentRepository,
-                          TutorProfileRepository tutorProfileRepository) {
+    public BookingService(BookingRepository bookingRepository) {
         this.bookingRepository = bookingRepository;
-        this.blockedContentRepository = blockedContentRepository;
-        this.tutorProfileRepository = tutorProfileRepository;
     }
 
-    public Booking createBooking(Booking booking) {
-        Long tutorUserId = booking.getTutorId();
-
-        if (blockedContentRepository.existsByContentTypeAndContentId(ContentType.USER, tutorUserId)) {
-            throw new ConflictException("This tutor is not available for booking");
-        }
-
-        tutorProfileRepository.findByUserId(tutorUserId).ifPresent(profile -> {
-            if (blockedContentRepository.existsByContentTypeAndContentId(
-                    ContentType.TUTOR_PROFILE, profile.getTutorProfileId())) {
-                throw new ConflictException("This tutor is not available for booking");
-            }
-        });
-
+    public Booking createBooking(Booking booking){
         booking.setStatus(BookingStatus.PENDING);
         return bookingRepository.save(booking);
     }
