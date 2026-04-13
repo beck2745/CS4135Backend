@@ -1,12 +1,12 @@
-package com.skillshare.gateway;
+package main.java.com.skillswap.booking;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ApiGatewayApplication {
+public class BookingServiceApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ApiGatewayApplication.class, args);
+        SpringApplication.run(BookingServiceApplication.class, args);
     }
 }
