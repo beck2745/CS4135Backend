@@ -1,0 +1,69 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  config:
+    import: optional:configserver:http://localhost:8888
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowed-origins:
+              - "http://localhost:5173"
+              - "http://127.0.0.1:5173"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowed-headers: "*"
+            allow-credentials: true
+      routes:
+        - id: identity
+          uri: lb://identity-service
+          predicates:
+            - Path=/api/auth/**
+        - id: booking-bookings
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/bookings/**
+        - id: booking-student-profiles
+          uri: lb://booking-service
+          predicates:
+            - Path=/api/student-profiles/**
+        - id: messaging
+          uri: lb://messaging-service
+          predicates:
+            - Path=/api/messages/**
+        - id: tutor-tutors
+          uri: lb://tutor-service
+          predicates:
+            - Path=/api/tutors/**
+        - id: tutor-reviews
+          uri: lb://tutor-service
+          predicates:
+            - Path=/api/reviews/**
+        - id: admin-admin
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/admin/**
+        - id: admin-reports
+          uri: lb://admin-service
+          predicates:
+            - Path=/api/reports/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
