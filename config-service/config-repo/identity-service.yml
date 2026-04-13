@@ -5,3 +5,6 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
+# Centralised JWT secret — set JWT_SECRET in the environment (see docker-compose).
+jwt:
+  secret: ${JWT_SECRET:changeit-changeit-changeit-changeit-32b}
