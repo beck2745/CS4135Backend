@@ -1,0 +1,21 @@
+spring:
+  cloud:
+    config:
+      enabled: false
+      import-check:
+        enabled: false
+    discovery:
+      enabled: false
+  datasource:
+    url: jdbc:h2:mem:identitytest;DB_CLOSE_DELAY=-1
+    driverClassName: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+eureka:
+  client:
+    enabled: false
+
+jwt:
+  secret: test-secret-test-secret-test-secret-32
