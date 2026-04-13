@@ -1,4 +1,4 @@
-package main.java.com.skillswap.booking;
+package com.skillswap.booking;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
