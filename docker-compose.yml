@@ -1,0 +1,91 @@
+# Run from CS4135Backend/ — SkillSwap microservice scaffold
+# Tip: give Docker Desktop enough RAM (e.g. 8 GB+); many JVMs can OOM and exit.
+
+services:
+  discovery-service:
+    build: ./discovery-service
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+
+  config-service:
+    build: ./config-service
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    depends_on:
+      - discovery-service
+    environment:
+      SPRING_PROFILES_ACTIVE: native,docker
+
+  identity-service:
+    build: ./identity-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    depends_on:
+      - discovery-service
+      - config-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: changeit-changeit-changeit-changeit-32b
+
+  booking-service:
+    build: ./booking-service
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    depends_on:
+      - discovery-service
+      - config-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  messaging-service:
+    build: ./messaging-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    depends_on:
+      - discovery-service
+      - config-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  tutor-service:
+    build: ./tutor-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    depends_on:
+      - discovery-service
+      - config-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  admin-service:
+    build: ./admin-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    depends_on:
+      - discovery-service
+      - config-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  api-gateway:
+    build: ./api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-service
+      - config-service
+      - identity-service
+      - booking-service
+      - messaging-service
+      - tutor-service
+      - admin-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
