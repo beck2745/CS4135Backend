@@ -10,9 +10,13 @@ import com.skillswap.messaging.repository.MessageRepository;
 import com.skillswap.messaging.repository.MessageThreadRepository;
 import feign.FeignException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MessageService {
@@ -20,15 +24,19 @@ public class MessageService {
     private final MessageThreadRepository threadRepository;
     private final MessageRepository messageRepository;
     private final BookingClient bookingClient;
+    private final EntityManager entityManager;
 
     public MessageService(
             MessageThreadRepository threadRepository,
             MessageRepository messageRepository,
-            BookingClient bookingClient) {
+            BookingClient bookingClient,
+            EntityManager entityManager) {
         this.threadRepository = threadRepository;
         this.messageRepository = messageRepository;
         this.bookingClient = bookingClient;
+        this.entityManager = entityManager;
     }
+    
 
     private BookingInternalDTO fetchBooking(Long bookingId) {
         try {
@@ -41,16 +49,23 @@ public class MessageService {
         }
     }
 
+   @Transactional
     public MessageThread createThread(Long bookingId) {
         BookingInternalDTO booking = fetchBooking(bookingId);
         if (!"CONFIRMED".equals(booking.status())) {
             throw new ConflictException("A message thread can only be created for a CONFIRMED booking");
         }
-        if (threadRepository.existsByBookingId(bookingId)) {
-            throw new ConflictException("A message thread already exists for this booking");
-        }
-        MessageThread thread = new MessageThread(bookingId, LocalDateTime.now());
-        return threadRepository.save(thread);
+
+        return threadRepository.findByBookingId(bookingId)
+            .orElseGet(() -> {
+                MessageThread thread = new MessageThread(bookingId, LocalDateTime.now());
+
+                try {
+                    return threadRepository.saveAndFlush(thread);
+                } catch (DataIntegrityViolationException ex) {
+                    throw new ConflictException("A message thread already exists for this booking");
+                }
+            });
     }
 
     public MessageThread getThreadByBookingId(Long bookingId) {
