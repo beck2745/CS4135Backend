@@ -9,4 +9,4 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 COPY config-repo /app/config-repo
 EXPOSE 8888
-ENTRYPOINT ["java", "-jar", "/app/app.jar", "--spring.profiles.active=docker"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar", "--spring.profiles.active=native,docker"]
