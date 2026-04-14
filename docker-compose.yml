@@ -17,6 +17,7 @@ services:
       - discovery-service
     environment:
       SPRING_PROFILES_ACTIVE: native,docker
+      JWT_SECRET: changeit-changeit-changeit-changeit-32b
 
   identity-service:
     build: ./identity-service
