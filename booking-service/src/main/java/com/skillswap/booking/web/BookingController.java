@@ -4,6 +4,7 @@ import com.skillswap.booking.model.Booking;
 import com.skillswap.booking.service.BookingService;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -62,7 +63,7 @@ public class BookingController {
     }
 
     @GetMapping("/tutor/{tutorId}/schedule")
-    public List<Booking> getTutorSchedule(@PathVariable Long tutorId, @RequestParam String sessionDate) {
+    public List<Booking> getTutorSchedule(@PathVariable Long tutorId, @RequestParam LocalDate sessionDate) {
         return bookingService.getTutorSchedule(tutorId, sessionDate);
     }
 }
