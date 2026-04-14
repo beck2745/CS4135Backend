@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public record ReportResponseDTO(
         Long id,
         Long reportedByUserId,
+        String reportedByEmail,
         ContentType contentType,
         Long contentId,
         String reason,

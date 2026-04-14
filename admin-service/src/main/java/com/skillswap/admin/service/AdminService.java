@@ -170,6 +170,7 @@ public class AdminService {
         return new ReportResponseDTO(
                 r.getId(),
                 r.getReportedByUserId(),
+                null,
                 r.getContentType(),
                 r.getContentId(),
                 r.getReason(),
