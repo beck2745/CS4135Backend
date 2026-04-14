@@ -93,6 +93,6 @@ public class MessageService {
 
     public List<Message> getMessages(Long threadId) {
         getThreadById(threadId);
-        return messageRepository.findByThreadIdOrderBySentAtAsc(threadId);
+        return messageRepository.findByThreadIdAndBlockedFalseOrderBySentAtAsc(threadId);
     }
 }

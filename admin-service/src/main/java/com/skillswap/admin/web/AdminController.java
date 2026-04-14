@@ -5,8 +5,6 @@ import com.skillswap.admin.dto.BlockedContentDTO;
 import com.skillswap.admin.dto.ReportResponseDTO;
 import com.skillswap.admin.dto.UserSummaryDTO;
 import com.skillswap.admin.exception.ResourceNotFoundException;
-import com.skillswap.admin.model.Message;
-import com.skillswap.admin.repository.MessageRepository;
 import com.skillswap.admin.service.AdminService;
 import com.skillswap.admin.valueobject.ContentType;
 import org.springframework.web.bind.annotation.*;
@@ -20,21 +18,22 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
-    private final MessageRepository messageRepository;
     private final RestTemplate restTemplate;
 
-    public AdminController(AdminService adminService,
-            MessageRepository messageRepository,
-            RestTemplate restTemplate) {
+    public AdminController(AdminService adminService, RestTemplate restTemplate) {
         this.adminService = adminService;
-        this.messageRepository = messageRepository;
         this.restTemplate = restTemplate;
     }
 
     @GetMapping("/messages/{id}")
-    public Message getMessageById(@PathVariable Long id) {
-        return messageRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+    public Object getMessageById(@PathVariable Long id) {
+        try {
+            return restTemplate.getForObject(
+                    "http://messaging-service/api/internal/messages/" + id,
+                    Object.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new ResourceNotFoundException("Message not found");
+        }
     }
 
     @GetMapping("/users/{id}")

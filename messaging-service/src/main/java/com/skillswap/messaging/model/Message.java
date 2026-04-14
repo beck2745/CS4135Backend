@@ -23,6 +23,9 @@ public class Message {
     @Column(nullable = false)
     private LocalDateTime sentAt;
 
+    @Column(nullable = false)
+    private boolean blocked = false;
+
     public Message() {}
 
     public Message(Long threadId, Long senderId, String content, LocalDateTime sentAt) {
@@ -50,5 +53,13 @@ public class Message {
 
     public LocalDateTime getSentAt() {
         return sentAt;
+    }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
     }
 }
