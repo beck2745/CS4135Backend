@@ -41,9 +41,6 @@ public class ReportService {
             throw new ConflictException("reason is required");
         }
 
-        userRepository.findById(dto.reportedByUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("Reporting user not found"));
-
         if (reportRepository.existsByReportedByUserIdAndContentTypeAndContentId(
                 dto.reportedByUserId(), dto.contentType(), dto.contentId())) {
             throw new ConflictException("You have already reported this item");

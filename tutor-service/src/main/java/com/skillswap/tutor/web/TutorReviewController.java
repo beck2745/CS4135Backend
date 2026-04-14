@@ -3,7 +3,6 @@ package com.skillswap.tutor.web;
 import com.skillswap.tutor.dto.CreateTutorReviewRequest;
 import com.skillswap.tutor.model.TutorReview;
 import com.skillswap.tutor.service.TutorReviewService;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

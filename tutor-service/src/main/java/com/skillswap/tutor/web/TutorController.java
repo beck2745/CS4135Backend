@@ -4,7 +4,6 @@ import com.skillswap.tutor.dto.TutorProfileResponseDTO;
 import com.skillswap.tutor.dto.TutorProfileWriteDTO;
 import com.skillswap.tutor.dto.TutorSearchResultDTO;
 import com.skillswap.tutor.service.TutorProfileService;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
