@@ -25,6 +25,9 @@ public class TutorProfile {
 
     private Double averageRating;
 
+    @Column(nullable = false)
+    private boolean blocked = false;
+
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TutorSkill> skills = new ArrayList<>();
 
@@ -68,6 +71,14 @@ public class TutorProfile {
 
     public List<TutorSkill> getSkills() {
         return skills;
+    }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
     }
 
     public void replaceSkills(List<TutorSkill> newSkills) {

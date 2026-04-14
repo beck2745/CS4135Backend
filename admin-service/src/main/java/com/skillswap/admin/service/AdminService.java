@@ -50,6 +50,13 @@ public class AdminService {
                 restTemplate.postForObject(
                         "http://identity-service/api/internal/users/{id}/suspend",
                         null, Void.class, report.getContentId());
+                restTemplate.postForObject(
+                        "http://tutor-service/api/internal/tutors/{id}/block",
+                        null, Void.class, report.getContentId());
+            } else if (report.getContentType() == ContentType.TUTOR_PROFILE) {
+                restTemplate.postForObject(
+                        "http://tutor-service/api/internal/tutors/{id}/block",
+                        null, Void.class, report.getContentId());
             } else if (report.getContentType() == ContentType.MESSAGE) {
                 restTemplate.postForObject(
                         "http://messaging-service/api/internal/messages/{id}/block",
@@ -118,6 +125,13 @@ public class AdminService {
         if (contentType == ContentType.USER) {
             restTemplate.postForObject(
                     "http://identity-service/api/internal/users/{id}/activate",
+                    null, Void.class, contentId);
+            restTemplate.postForObject(
+                    "http://tutor-service/api/internal/tutors/{id}/unblock",
+                    null, Void.class, contentId);
+        } else if (contentType == ContentType.TUTOR_PROFILE) {
+            restTemplate.postForObject(
+                    "http://tutor-service/api/internal/tutors/{id}/unblock",
                     null, Void.class, contentId);
         } else if (contentType == ContentType.MESSAGE) {
             restTemplate.postForObject(

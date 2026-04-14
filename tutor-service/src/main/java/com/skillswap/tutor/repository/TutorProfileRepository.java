@@ -14,7 +14,10 @@ public interface TutorProfileRepository extends JpaRepository<TutorProfile, Long
 
     boolean existsByUserId(Long userId);
 
+    List<TutorProfile> findByBlockedFalse();
+
     @Query("SELECT DISTINCT p FROM TutorProfile p LEFT JOIN p.skills s WHERE "
+            + "p.blocked = false AND "
             + "(:skill IS NULL OR :skill = '' OR LOWER(s.name) LIKE LOWER(CONCAT('%', :skill, '%')))")
     List<TutorProfile> findDistinctBySkillNameContaining(@Param("skill") String skill);
 }
