@@ -6,8 +6,10 @@ import com.skillswap.booking.exception.ResourceNotFoundException;
 import com.skillswap.booking.model.Booking;
 import com.skillswap.booking.model.BookingStatus;
 import com.skillswap.booking.repository.BookingRepository;
-import org.springframework.stereotype.Service;
 
+import org.springframework.cglib.core.Local;
+import org.springframework.stereotype.Service;
+import java.time.ZoneId;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -93,50 +95,69 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
-    public List<Booking> getTutorSchedule(Long tutorId, String sessionDate) {
+    public List<Booking> getTutorSchedule(Long tutorId, LocalDate sessionDate) {
         completeExpiredBookings();
         return bookingRepository.findByTutorIdAndSessionDateAndStatus(
                 tutorId, sessionDate, BookingStatus.CONFIRMED);
     }
 
-    public void completeExpiredBookings() {
-        List<Booking> activeBookings = bookingRepository.findByStatusIn(List.of(BookingStatus.CONFIRMED));
-        LocalDateTime now = LocalDateTime.now();
-        for (Booking booking : activeBookings) {
-            if (hasBookingEnded(booking, now)) {
-                booking.setStatus(BookingStatus.COMPLETED);
-                bookingRepository.save(booking);
-            }
+    private static final ZoneId APP_ZONE = ZoneId.of("Europe/Dublin");
+
+public void completeExpiredBookings() {
+    List<Booking> activeBookings =
+            bookingRepository.findByStatusIn(List.of(BookingStatus.CONFIRMED));
+
+    LocalDateTime now = LocalDateTime.now(APP_ZONE);
+
+    for (Booking booking : activeBookings) {
+        if (hasBookingEnded(booking, now)) {
+            booking.setStatus(BookingStatus.COMPLETED);
+            bookingRepository.save(booking);
         }
     }
+}
 
     private boolean hasBookingEnded(Booking booking, LocalDateTime now) {
-        try {
-            LocalDate date = LocalDate.parse(booking.getSessionDate());
-            LocalTime endTime = LocalTime.parse(booking.getEndTime());
-            LocalDateTime bookingEnd = LocalDateTime.of(date, endTime);
-            return now.isAfter(bookingEnd);
+        LocalDate sessionDate=booking.getSessionDate();
+        LocalTime endTime=booking.getEndTime();
+        if(sessionDate==null || endTime==null) {
+            return false;
+        }
+        try{
+            LocalDate date = sessionDate;
+            LocalTime time = endTime;
+            LocalDateTime bookingEnd = LocalDateTime.of(date, time);
+            return !now.isBefore(bookingEnd);
         } catch (DateTimeParseException e) {
             return false;
         }
-    }
+    
+    
+}
 
-    private boolean hasConflict(Long tutorId, String sessionDate, String startTime, String endTime) {
-        List<Booking> approvedBookings =
-                bookingRepository.findByTutorIdAndSessionDateAndStatus(tutorId, sessionDate, BookingStatus.CONFIRMED);
-        for (Booking existing : approvedBookings) {
-            if (startTime.compareTo(existing.getEndTime()) < 0 && endTime.compareTo(existing.getStartTime()) > 0) {
-                return true;
-            }
+    private boolean hasConflict(Long tutorId, LocalDate sessionDate, LocalTime startTime, LocalTime endTime) {
+    List<Booking> approvedBookings =
+            bookingRepository.findByTutorIdAndSessionDateAndStatus(
+                    tutorId,
+                    sessionDate,
+                    BookingStatus.CONFIRMED
+            );
+
+    for (Booking existing : approvedBookings) {
+        if (startTime.isBefore(existing.getEndTime()) &&
+            endTime.isAfter(existing.getStartTime())) {
+            return true;
         }
-        return false;
     }
 
-    private boolean impossibleTimeSlot(String sessionDate, String startTime, String endTime) {
+    return false;
+}
+
+    private boolean impossibleTimeSlot(LocalDate sessionDate, LocalTime startTime, LocalTime endTime) {
         try {
-            LocalDate date = LocalDate.parse(sessionDate);
-            LocalTime start = LocalTime.parse(startTime);
-            LocalTime end = LocalTime.parse(endTime);
+            LocalDate date = sessionDate;
+            LocalTime start = startTime;
+            LocalTime end = endTime;
             return !start.isBefore(end) || date.isBefore(LocalDate.now());
         } catch (DateTimeParseException e) {
             return true;

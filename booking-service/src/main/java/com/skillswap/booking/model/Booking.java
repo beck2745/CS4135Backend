@@ -1,6 +1,8 @@
 package com.skillswap.booking.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 public class Booking {
@@ -12,9 +14,9 @@ public class Booking {
     private Long studentId;
     private Long tutorId;
     private String skill;
-    private String sessionDate;
-    private String startTime;
-    private String endTime;
+    private LocalDate sessionDate;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private Integer durationMinutes;
     private String notes;
 
@@ -51,27 +53,27 @@ public class Booking {
         this.skill = skill;
     }
 
-    public String getSessionDate() {
+    public LocalDate getSessionDate() {
         return sessionDate;
     }
 
-    public void setSessionDate(String sessionDate) {
+    public void setSessionDate(LocalDate sessionDate) {
         this.sessionDate = sessionDate;
     }
 
-    public String getStartTime() {
+    public LocalTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(String startTime) {
+    public void setStartTime(LocalTime startTime) {
         this.startTime = startTime;
     }
 
-    public String getEndTime() {
+    public LocalTime getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(String endTime) {
+    public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
     }
 
