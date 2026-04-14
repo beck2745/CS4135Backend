@@ -4,21 +4,23 @@ server:
 spring:
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          "[/**]":
-            allowed-origin-patterns:
-              - "http://localhost:*"
-              - "http://127.0.0.1:*"
-            allowed-methods:
-              - GET
-              - POST
-              - PUT
-              - PATCH
-              - DELETE
-              - OPTIONS
-            allowed-headers: "*"
-            allow-credentials: true
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              "[/**]":
+                allowed-origin-patterns:
+                  - "http://localhost:*"
+                  - "http://127.0.0.1:*"
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowed-headers: "*"
+                allow-credentials: true
 
 eureka:
   client:

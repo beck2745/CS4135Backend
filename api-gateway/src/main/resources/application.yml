@@ -8,21 +8,23 @@ spring:
     import: optional:configserver:http://localhost:8888
   cloud:
     gateway:
-      globalcors:
-        cors-configurations:
-          "[/**]":
-            allowed-origins-patterns:
-              - "http://localhost:*"
-              - "http://127.0.0.1:*"
-            allowed-methods:
-              - GET
-              - POST
-              - PUT
-              - PATCH
-              - DELETE
-              - OPTIONS
-            allowed-headers: "*"
-            allow-credentials: true
+      server:
+        webflux:
+          globalcors:
+            cors-configurations:
+              "[/**]":
+                allowed-origin-patterns:
+                  - "http://localhost:*"
+                  - "http://127.0.0.1:*"
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowed-headers: "*"
+                allow-credentials: true
       routes:
         - id: identity
           uri: lb://identity-service
