@@ -6,7 +6,6 @@ import com.skillswap.admin.entity.Report;
 import com.skillswap.admin.exception.ConflictException;
 import com.skillswap.admin.exception.ResourceNotFoundException;
 import com.skillswap.admin.repository.ReportRepository;
-import com.skillswap.admin.repository.UserRepository;
 import com.skillswap.admin.valueobject.ContentType;
 import com.skillswap.admin.valueobject.ReportStatus;
 import org.springframework.stereotype.Service;
@@ -19,11 +18,9 @@ import java.util.stream.Collectors;
 public class ReportService {
 
     private final ReportRepository reportRepository;
-    private final UserRepository userRepository;
 
-    public ReportService(ReportRepository reportRepository, UserRepository userRepository) {
+    public ReportService(ReportRepository reportRepository) {
         this.reportRepository = reportRepository;
-        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -40,9 +37,6 @@ public class ReportService {
         if (dto.reason() == null || dto.reason().isBlank()) {
             throw new ConflictException("reason is required");
         }
-
-        userRepository.findById(dto.reportedByUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("Reporting user not found"));
 
         if (reportRepository.existsByReportedByUserIdAndContentTypeAndContentId(
                 dto.reportedByUserId(), dto.contentType(), dto.contentId())) {
@@ -90,7 +84,6 @@ public class ReportService {
                 r.getContentId(),
                 r.getReason(),
                 r.getStatus(),
-                r.getCreatedAt()
-        );
+                r.getCreatedAt());
     }
 }
