@@ -16,6 +16,7 @@ import com.skillswap.admin.valueobject.ContentType;
 import com.skillswap.admin.valueobject.ReportStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,13 +27,16 @@ public class AdminService {
     private final ReportRepository reportRepository;
     private final AdminActionLogRepository actionLogRepository;
     private final BlockedContentRepository blockedContentRepository;
+    private final RestTemplate restTemplate;
 
     public AdminService(ReportRepository reportRepository,
             AdminActionLogRepository actionLogRepository,
-            BlockedContentRepository blockedContentRepository) {
+            BlockedContentRepository blockedContentRepository,
+            RestTemplate restTemplate) {
         this.reportRepository = reportRepository;
         this.actionLogRepository = actionLogRepository;
         this.blockedContentRepository = blockedContentRepository;
+        this.restTemplate = restTemplate;
     }
 
     @Transactional
@@ -42,6 +46,11 @@ public class AdminService {
         if (!blockedContentRepository.existsByContentTypeAndContentId(report.getContentType(), report.getContentId())) {
             blockedContentRepository.save(
                     new BlockedContent(report.getContentType(), report.getContentId(), adminId, notes));
+            if (report.getContentType() == ContentType.USER) {
+                restTemplate.postForObject(
+                        "http://identity-service/api/internal/users/{id}/suspend",
+                        null, Void.class, report.getContentId());
+            }
         }
 
         report.setStatus(ReportStatus.CLOSED);
@@ -101,6 +110,12 @@ public class AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("No block found for this content"));
 
         blockedContentRepository.delete(blocked);
+
+        if (contentType == ContentType.USER) {
+            restTemplate.postForObject(
+                    "http://identity-service/api/internal/users/{id}/activate",
+                    null, Void.class, contentId);
+        }
 
         actionLogRepository.save(new AdminActionLog(adminId, AdminActionType.UNBLOCK_CONTENT, null, reason));
     }
