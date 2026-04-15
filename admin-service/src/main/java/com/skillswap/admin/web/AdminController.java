@@ -3,14 +3,13 @@ package com.skillswap.admin.web;
 import com.skillswap.admin.dto.AdminActionLogDTO;
 import com.skillswap.admin.dto.BlockedContentDTO;
 import com.skillswap.admin.dto.ReportResponseDTO;
-import com.skillswap.admin.entity.User;
+import com.skillswap.admin.dto.UserSummaryDTO;
 import com.skillswap.admin.exception.ResourceNotFoundException;
-import com.skillswap.admin.model.Message;
-import com.skillswap.admin.repository.MessageRepository;
-import com.skillswap.admin.repository.UserRepository;
 import com.skillswap.admin.service.AdminService;
 import com.skillswap.admin.valueobject.ContentType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -19,27 +18,33 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
-    private final MessageRepository messageRepository;
-    private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
 
-    public AdminController(AdminService adminService,
-            MessageRepository messageRepository,
-            UserRepository userRepository) {
+    public AdminController(AdminService adminService, RestTemplate restTemplate) {
         this.adminService = adminService;
-        this.messageRepository = messageRepository;
-        this.userRepository = userRepository;
+        this.restTemplate = restTemplate;
     }
 
     @GetMapping("/messages/{id}")
-    public Message getMessageById(@PathVariable Long id) {
-        return messageRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+    public Object getMessageById(@PathVariable Long id) {
+        try {
+            return restTemplate.getForObject(
+                    "http://messaging-service/api/internal/messages/" + id,
+                    Object.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new ResourceNotFoundException("Message not found");
+        }
     }
 
     @GetMapping("/users/{id}")
-    public User getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public UserSummaryDTO getUserById(@PathVariable Long id) {
+        try {
+            return restTemplate.getForObject(
+                    "http://identity-service/api/internal/users/" + id,
+                    UserSummaryDTO.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new ResourceNotFoundException("User not found");
+        }
     }
 
     @PostMapping("/reports/{reportId}/block")

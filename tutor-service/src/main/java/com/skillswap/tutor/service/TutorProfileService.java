@@ -53,9 +53,6 @@ public class TutorProfileService {
         return out;
     }
 
-    /**
-     * Search tutors. Blocked-content filtering removed for prototype — ACL via admin in production.
-     */
     @Transactional(readOnly = true)
     public List<TutorSearchResultDTO> search(
             String skill,
@@ -65,7 +62,7 @@ public class TutorProfileService {
             String proficiencyLevel) {
         String skillFilter = skill != null ? skill.trim() : "";
         List<TutorProfile> candidates = skillFilter.isEmpty()
-                ? tutorProfileRepository.findAll()
+                ? tutorProfileRepository.findByBlockedFalse()
                 : tutorProfileRepository.findDistinctBySkillNameContaining(skillFilter);
 
         boolean onlyVerified = Boolean.TRUE.equals(verifiedOnly);

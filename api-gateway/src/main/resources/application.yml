@@ -30,6 +30,18 @@ spring:
           uri: lb://identity-service
           predicates:
             - Path=/api/auth/**
+        - id: identity-internal
+          uri: lb://identity-service
+          predicates:
+            - Path=/api/internal/users/**
+        - id: messaging-internal
+          uri: lb://messaging-service
+          predicates:
+            - Path=/api/internal/messages/**
+        - id: tutor-internal
+          uri: lb://tutor-service
+          predicates:
+            - Path=/api/internal/tutors/**
         - id: booking-bookings
           uri: lb://booking-service
           predicates:
