@@ -25,6 +25,9 @@ public class StudentProfileController {
         this.userRepository = userRepository;
     }
 
+    @GetMapping("/health")
+    public String health() { return "OK"; }
+
     @GetMapping("/{userId}")
     public ResponseEntity<StudentProfileResponse> getStudentProfile(@PathVariable Long userId) {
         StudentProfile profile = studentProfileRepository.findById(userId)

@@ -19,6 +19,9 @@ public class TutorReviewController {
         this.tutorReviewService = tutorReviewService;
     }
 
+    @GetMapping("/health")
+    public String health() { return "OK"; }
+
     @PostMapping
     public TutorReview createReview(@RequestBody CreateTutorReviewRequest request) {
         return tutorReviewService.createReview(request);

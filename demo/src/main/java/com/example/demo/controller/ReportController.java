@@ -20,6 +20,9 @@ public class ReportController {
         this.reportService = reportService;
     }
 
+    @GetMapping("/api/reports/health")
+    public String health() { return "OK"; }
+
     // Any logged-in user can submit a report
     @PostMapping("/api/reports")
     @ResponseStatus(HttpStatus.CREATED)

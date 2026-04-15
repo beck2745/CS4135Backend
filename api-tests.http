@@ -5,6 +5,34 @@
 @token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdHVkZW50QHRlc3QuY29tIiwidXNlcklkIjo2OCwicm9sZSI6IlNUVURFTlQiLCJzdGF0dXMiOiJBQ1RJVkUiLCJpYXQiOjE3NzYyNDc1OTYsImV4cCI6MTc3NjI1MTE5Nn0.F6V_2wXdS6qnM-U1yaxR1D4NChJVnzY-M3oLhik37-0
 
 ###############################################
+# HEALTH CHECKS
+###############################################
+
+### Auth health
+GET {{base}}/api/auth/health
+
+### Bookings health
+GET {{base}}/api/bookings/health
+
+### Student Profiles health
+GET {{base}}/api/student-profiles/health
+
+### Messages health
+GET {{base}}/api/messages/health
+
+### Tutors health
+GET {{base}}/api/tutors/health
+
+### Reviews health
+GET {{base}}/api/reviews/health
+
+### Admin health
+GET {{base}}/api/admin/health
+
+### Reports health
+GET {{base}}/api/reports/health
+
+###############################################
 # AUTH
 ###############################################
 
@@ -70,11 +98,11 @@ GET {{base}}/api/tutors/search?skill=Photography
 Authorization: Bearer {{token}}
 
 ### Search tutors with filters
-GET {{base}}/api/tutors/search?skill=Math&verifiedOnly=true&minRating=4.0
+GET {{base}}/api/tutors/search?skill=Math
 Authorization: Bearer {{token}}
 
 ### Search tutors by keyword
-GET {{base}}/api/tutors/search?q=calculus
+GET {{base}}/api/tutors/search?q=algebra
 Authorization: Bearer {{token}}
 
 ### List all skill names
@@ -93,7 +121,6 @@ Authorization: Bearer {{token}}
 {
   "userId": 1,
   "bio": "Experienced math tutor",
-  "hourlyRate": 25.00,
   "skills": [
     { "skillName": "Math", "proficiencyLevel": "EXPERT" }
   ]
@@ -145,7 +172,7 @@ GET {{base}}/api/bookings/tutor/2/schedule?sessionDate=2026-04-19
 Authorization: Bearer {{token}}
 
 ### Get booking by ID
-GET {{base}}/api/bookings/1
+GET {{base}}/api/bookings/2
 Authorization: Bearer {{token}}
 
 ### Approve a booking
@@ -214,11 +241,11 @@ Authorization: Bearer {{token}}
 
 ### Block reported content (and close the report)
 # adminId = ID of the admin taking the action
-POST {{base}}/api/admin/reports/1/block?adminId=3&notes=Content+violated+terms
+POST {{base}}/api/admin/reports/39/block?adminId=3&notes=Content+violated+terms
 Authorization: Bearer {{token}}
 
 ### Dismiss a report (not a problem)
-PATCH {{base}}/api/admin/reports/1/dismiss?adminId=3&notes=Reviewed+and+no+issue+found
+PATCH {{base}}/api/admin/reports/38/dismiss?adminId=3&notes=Reviewed+and+no+issue+found
 Authorization: Bearer {{token}}
 
 ###############################################
@@ -295,19 +322,19 @@ Authorization: Bearer {{token}}
 ###############################################
 
 ### Create a message thread for a booking
-POST {{base}}/api/messages/threads?bookingId=1
+POST {{base}}/api/messages/threads?bookingId=2
 Authorization: Bearer {{token}}
 
 ### Get thread by booking ID
-GET {{base}}/api/messages/threads/booking/
+GET {{base}}/api/messages/threads/booking/2
 Authorization: Bearer {{token}}
 
 ### Get thread by thread ID
-GET {{base}}/api/messages/threads/1
+GET {{base}}/api/messages/threads/2
 Authorization: Bearer {{token}}
 
 ### Send a message in a thread
-POST {{base}}/api/messages/threads/1/messages
+POST {{base}}/api/messages/threads/458/messages
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -317,5 +344,5 @@ Authorization: Bearer {{token}}
 }
 
 ### Get all messages in a thread
-GET {{base}}/api/messages/threads/1/messages
+GET {{base}}/api/messages/threads/458/messages
 Authorization: Bearer {{token}}

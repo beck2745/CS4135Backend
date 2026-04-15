@@ -19,6 +19,9 @@ public class TutorController {
         this.tutorProfileService = tutorProfileService;
     }
 
+    @GetMapping("/health")
+    public String health() { return "OK"; }
+
     @GetMapping("/skills")
     public List<String> listSkillNames() {
         return tutorProfileService.listDistinctSkillNames();

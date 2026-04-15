@@ -21,6 +21,9 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
+    @GetMapping("/health")
+    public String health() { return "OK"; }
+
     @PostMapping
     public Booking createBooking(@RequestBody Booking booking){
         return bookingService.createBooking(booking);
