@@ -37,7 +37,6 @@ Each context encapsulates its own domain logic and communicates via well-defined
 ---
 
 ## Project Structure
-src/main/java/com/example/demo
 
 -  controller - REST API controllers
 - service - Business logic layer
@@ -81,16 +80,59 @@ src/main/java/com/example/demo
 
 ---
 
-## Getting Started
+# Microservices scaffold (SkillSwap)
 
-### Prerequisites
+This project has **eight runnable Spring Boot apps**
 
-- Java 21
-- Maven
+| Folder | Port | Role |
+|--------|------|------|
+| `discovery-service/` | 8761 | Eureka (service discovery) |
+| `config-service/` | 8888 | Spring Cloud Config (native `config-repo/`) |
+| `api-gateway/` | 8080 | Spring Cloud Gateway → `lb://…` routes |
+| `identity-service/` | 8081 | Auth, users, JWT, internal user ACL (`/api/internal/users/**`) |
+| `booking-service/` | 8082 | Bookings + student profiles; **Feign → identity**; internal booking read API |
+| `messaging-service/` | 8083 | Threads/messages; **Feign → booking** + Resilience4j circuit breaker |
+| `tutor-service/` | 8084 | Tutor profiles, skills, reviews; Feign → identity + booking |
+| `admin-service/` | 8085 | Reports, moderation, audit |
 
-### Run the Application
+## Prerequisites
+
+- Java **21**
+- **Maven**
+- **Docker Desktop** (optional, for `docker-compose`)
+
+## Run locally (no Docker)
+
+Start in this order:
+
+1. **Discovery** — `cd discovery-service` → `mvn -q -DskipTests spring-boot:run` → `http://localhost:8761`
+2. **Config** (from `config-service` so `file:./config-repo` resolves) — `mvn -q -DskipTests spring-boot:run`
+3. **Domain services** — each of `identity-service`, `booking-service`, `messaging-service`, `tutor-service`, `admin-service`
+4. **Gateway** — `cd api-gateway` → `mvn -q -DskipTests spring-boot:run`
+
+### Smoke tests (through gateway on port 8080)
+
+- `http://localhost:8080/api/auth/health`
+- `http://localhost:8080/api/bookings/health`
+- `http://localhost:8080/api/student-profiles/health`
+- `http://localhost:8080/api/messages/health`
+- `http://localhost:8080/api/tutors/health`
+- `http://localhost:8080/api/reviews/health`
+- `http://localhost:8080/api/admin/health`
+- `http://localhost:8080/api/reports/health`
+
+CORS on the gateway allows the Vite dev server on **http://localhost:5173**.
+
+## Run with Docker
+
+From this backend repo root:
 
 ```bash
 git clone https://github.com/beck2745/CS4135Backend.git
-cd demo
-mvn spring-boot:run
+docker compose up --build
+```
+
+## Versions
+
+- Spring Boot **3.5.10**
+- Spring Cloud BOM **2025.0.0**
