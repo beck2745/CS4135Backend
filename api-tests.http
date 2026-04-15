@@ -1,0 +1,321 @@
+# CS4135 API Tests
+# Install "REST Client" VS Code extension, then click "Send Request" above each block
+# Base URL
+@base = http://localhost:8080
+@token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdHVkZW50QHRlc3QuY29tIiwidXNlcklkIjo2OCwicm9sZSI6IlNUVURFTlQiLCJzdGF0dXMiOiJBQ1RJVkUiLCJpYXQiOjE3NzYyNDc1OTYsImV4cCI6MTc3NjI1MTE5Nn0.F6V_2wXdS6qnM-U1yaxR1D4NChJVnzY-M3oLhik37-0
+
+###############################################
+# AUTH
+###############################################
+
+### Register a new student
+POST {{base}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "student@tes.com",
+  "password": "password123",
+  "role": "STUDENT",
+  "userId": null,
+  "adminCode": null,
+  "name": "Test Student"
+}
+
+### Register a new tutor
+POST {{base}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "tutor@test.com",
+  "password": "password123",
+  "role": "TUTOR",
+  "userId": null,
+  "adminCode": null,
+  "name": "Test Tutor"
+}
+
+### Login
+# Copy the token from the response and paste it into @token above
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "student@test.com",
+  "password": "password123"
+}
+
+### Get user profile
+GET {{base}}/api/auth/profile/1
+Authorization: Bearer {{token}}
+
+### Update user profile
+PUT {{base}}/api/auth/profile/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Updated Name"
+}
+
+###############################################
+# TUTORS
+###############################################
+
+### Search all tutors
+GET {{base}}/api/tutors/search
+Authorization: Bearer {{token}}
+
+### Search tutors by skill
+GET {{base}}/api/tutors/search?skill=Photography
+Authorization: Bearer {{token}}
+
+### Search tutors with filters
+GET {{base}}/api/tutors/search?skill=Math&verifiedOnly=true&minRating=4.0
+Authorization: Bearer {{token}}
+
+### Search tutors by keyword
+GET {{base}}/api/tutors/search?q=calculus
+Authorization: Bearer {{token}}
+
+### List all skill names
+GET {{base}}/api/tutors/skills
+Authorization: Bearer {{token}}
+
+### Get tutor profile by ID
+GET {{base}}/api/tutors/profile/1
+Authorization: Bearer {{token}}
+
+### Create tutor profile
+POST {{base}}/api/tutors/profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": 1,
+  "bio": "Experienced math tutor",
+  "hourlyRate": 25.00,
+  "skills": [
+    { "skillName": "Math", "proficiencyLevel": "EXPERT" }
+  ]
+}
+
+### Update tutor profile
+PUT {{base}}/api/tutors/profile/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": 1,
+  "bio": "Updated bio",
+  "hourlyRate": 30.00,
+  "skills": [
+    { "skillName": "Math", "proficiencyLevel": "EXPERT" },
+    { "skillName": "Physics", "proficiencyLevel": "INTERMEDIATE" }
+  ]
+}
+
+###############################################
+# BOOKINGS
+###############################################
+
+### Create a booking
+POST {{base}}/api/bookings
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "studentId": 1,
+  "tutorId": 2,
+  "sessionDate": "2026-04-20",
+  "sessionTime": "10:00",
+  "durationMinutes": 60,
+  "subject": "Math"
+}
+
+### Get all bookings for a student
+GET {{base}}/api/bookings/student/1
+Authorization: Bearer {{token}}
+
+### Get all bookings for a tutor
+GET {{base}}/api/bookings/tutor/2
+Authorization: Bearer {{token}}
+
+### Get tutor schedule for a date
+GET {{base}}/api/bookings/tutor/2/schedule?sessionDate=2026-04-19
+Authorization: Bearer {{token}}
+
+### Get booking by ID
+GET {{base}}/api/bookings/1
+Authorization: Bearer {{token}}
+
+### Approve a booking
+PUT {{base}}/api/bookings/1/approve
+Authorization: Bearer {{token}}
+
+### Reject a booking
+PUT {{base}}/api/bookings/1/reject
+Authorization: Bearer {{token}}
+
+### Cancel a booking
+PUT {{base}}/api/bookings/1/cancel
+Authorization: Bearer {{token}}
+
+### Complete a booking
+PUT {{base}}/api/bookings/1/complete
+Authorization: Bearer {{token}}
+
+###############################################
+# REPORTS (any logged-in user)
+###############################################
+
+### Submit a report on a message
+POST {{base}}/api/reports
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "reportedByUserId": 1,
+  "contentType": "MESSAGE",
+  "contentId": 2,
+  "reason": "This message contains inappropriate language"
+}
+
+### Submit a report on a user
+POST {{base}}/api/reports
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "reportedByUserId": 2,
+  "contentType": "USER",
+  "contentId": 2,
+  "reason": "This user is behaving suspiciously"
+}
+
+###############################################
+# ADMIN - Reports
+###############################################
+
+### Get all reports (admin)
+GET {{base}}/api/admin/reports
+Authorization: Bearer {{token}}
+
+### Get reports filtered by status: PENDING, DISMISSED, BLOCKED
+GET {{base}}/api/admin/reports?status=PENDING
+Authorization: Bearer {{token}}
+
+### Get reports filtered by content type: MESSAGE, USER
+GET {{base}}/api/admin/reports?contentType=MESSAGE
+Authorization: Bearer {{token}}
+
+### Get a single report by ID
+GET {{base}}/api/admin/reports/1
+Authorization: Bearer {{token}}
+
+### Block reported content (and close the report)
+# adminId = ID of the admin taking the action
+POST {{base}}/api/admin/reports/1/block?adminId=3&notes=Content+violated+terms
+Authorization: Bearer {{token}}
+
+### Dismiss a report (not a problem)
+PATCH {{base}}/api/admin/reports/1/dismiss?adminId=3&notes=Reviewed+and+no+issue+found
+Authorization: Bearer {{token}}
+
+###############################################
+# ADMIN - Users & Messages
+###############################################
+
+### Get a user by ID (view reported user details)
+GET {{base}}/api/admin/users/1
+Authorization: Bearer {{token}}
+
+### Get a message by ID (view reported message content)
+GET {{base}}/api/admin/messages/1
+Authorization: Bearer {{token}}
+
+###############################################
+# ADMIN - Blocked Content
+###############################################
+
+### Get all blocked content
+GET {{base}}/api/admin/blocked
+Authorization: Bearer {{token}}
+
+### Get blocked content filtered by type: MESSAGE, USER
+GET {{base}}/api/admin/blocked?contentType=MESSAGE
+Authorization: Bearer {{token}}
+
+### Unblock content
+DELETE {{base}}/api/admin/block?contentType=MESSAGE&contentId=1&adminId=3&reason=False+positive
+Authorization: Bearer {{token}}
+
+###############################################
+# ADMIN - Audit Log
+###############################################
+
+### Get full audit log of all admin actions
+GET {{base}}/api/admin/audit-log
+Authorization: Bearer {{token}}
+
+### Get audit log for a specific report
+GET {{base}}/api/admin/reports/1/audit-log
+Authorization: Bearer {{token}}
+
+###############################################
+# REVIEWS
+###############################################
+
+### Create a review for a tutor (after a completed booking)
+POST {{base}}/api/reviews
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "bookingId": 1,
+  "studentId": 1,
+  "tutorId": 2,
+  "rating": 5,
+  "comment": "Great tutor, very helpful!"
+}
+
+### Get all reviews for a tutor
+GET {{base}}/api/reviews/tutor/2
+Authorization: Bearer {{token}}
+
+### Get review for a specific booking
+GET {{base}}/api/reviews/booking/1
+Authorization: Bearer {{token}}
+
+### Get average rating for a tutor
+GET {{base}}/api/reviews/tutor/2/average
+Authorization: Bearer {{token}}
+
+###############################################
+# MESSAGES
+###############################################
+
+### Create a message thread for a booking
+POST {{base}}/api/messages/threads?bookingId=1
+Authorization: Bearer {{token}}
+
+### Get thread by booking ID
+GET {{base}}/api/messages/threads/booking/
+Authorization: Bearer {{token}}
+
+### Get thread by thread ID
+GET {{base}}/api/messages/threads/1
+Authorization: Bearer {{token}}
+
+### Send a message in a thread
+POST {{base}}/api/messages/threads/1/messages
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "senderId": 1,
+  "content": "Hi, looking forward to our session!"
+}
+
+### Get all messages in a thread
+GET {{base}}/api/messages/threads/1/messages
+Authorization: Bearer {{token}}
