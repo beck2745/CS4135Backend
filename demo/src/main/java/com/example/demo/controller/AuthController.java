@@ -32,6 +32,9 @@ public class AuthController {
         this.tokenService = tokenService;
     }
 
+    @GetMapping("/health")
+    public String health() { return "OK"; }
+
     @PostMapping("/register")
     public AuthResponseDTO register(@Valid @RequestBody RegisterRequestDTO request) {
         User user = registrationService.register(

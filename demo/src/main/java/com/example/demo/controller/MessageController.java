@@ -21,6 +21,9 @@ public class MessageController {
     }
 
 
+    @GetMapping("/health")
+    public String health() { return "OK"; }
+
     @PostMapping("/threads")
     @ResponseStatus(HttpStatus.CREATED)
     public MessageThread createThread(@RequestParam Long bookingId) {

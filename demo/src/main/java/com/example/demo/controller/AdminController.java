@@ -31,6 +31,9 @@ public class AdminController {
         this.userRepository = userRepository;
     }
 
+    @GetMapping("/health")
+    public String health() { return "OK"; }
+
     // Fetch a single message by ID (for viewing reported message content)
     @GetMapping("/messages/{id}")
     public Message getMessageById(@PathVariable Long id) {
