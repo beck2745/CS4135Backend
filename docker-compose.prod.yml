@@ -1,0 +1,125 @@
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sharecraft}
+      POSTGRES_USER: ${POSTGRES_USER:-sharecraft_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+
+  discovery-service:
+    image: ${DOCKER_USERNAME}/sharecraft-discovery-service:latest
+    restart: unless-stopped
+    expose:
+      - "8761"
+
+  config-service:
+    image: ${DOCKER_USERNAME}/sharecraft-config-service:latest
+    restart: unless-stopped
+    depends_on:
+      - discovery-service
+    expose:
+      - "8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: native,docker
+      JWT_SECRET: ${JWT_SECRET}
+
+  identity-service:
+    image: ${DOCKER_USERNAME}/sharecraft-identity-service:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres-db
+      - discovery-service
+      - config-service
+    expose:
+      - "8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB:-sharecraft}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sharecraft_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+  booking-service:
+    image: ${DOCKER_USERNAME}/sharecraft-booking-service:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres-db
+      - discovery-service
+      - config-service
+    expose:
+      - "8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB:-sharecraft}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sharecraft_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+  messaging-service:
+    image: ${DOCKER_USERNAME}/sharecraft-messaging-service:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres-db
+      - discovery-service
+      - config-service
+    expose:
+      - "8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB:-sharecraft}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sharecraft_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+  tutor-service:
+    image: ${DOCKER_USERNAME}/sharecraft-tutor-service:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres-db
+      - discovery-service
+      - config-service
+    expose:
+      - "8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB:-sharecraft}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sharecraft_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+  admin-service:
+    image: ${DOCKER_USERNAME}/sharecraft-admin-service:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres-db
+      - discovery-service
+      - config-service
+    expose:
+      - "8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/${POSTGRES_DB:-sharecraft}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-sharecraft_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+  api-gateway:
+    image: ${DOCKER_USERNAME}/sharecraft-api-gateway:latest
+    restart: unless-stopped
+    depends_on:
+      - discovery-service
+      - config-service
+      - identity-service
+      - booking-service
+      - messaging-service
+      - tutor-service
+      - admin-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET}
+
+volumes:
+  postgres-data:
