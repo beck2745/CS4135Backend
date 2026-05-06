@@ -16,7 +16,9 @@ import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class MessageService {
@@ -25,6 +27,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final BookingClient bookingClient;
     private final EntityManager entityManager;
+    private final Map<Long, BookingInternalDTO> bookingCache = new ConcurrentHashMap<>();
 
     public MessageService(
             MessageThreadRepository threadRepository,
@@ -39,8 +42,16 @@ public class MessageService {
     
 
     private BookingInternalDTO fetchBooking(Long bookingId) {
+        if (bookingCache.containsKey(bookingId)) {
+            return bookingCache.get(bookingId);
+        }
+
         try {
-            return bookingClient.getBooking(bookingId);
+            BookingInternalDTO booking = bookingClient.getBooking(bookingId);
+            if ("CONFIRMED".equals(booking.status())) {
+                bookingCache.put(bookingId, booking);
+            }
+            return booking;
         } catch (FeignException e) {
             if (e.status() == 404) {
                 throw new ResourceNotFoundException("Booking not found");
