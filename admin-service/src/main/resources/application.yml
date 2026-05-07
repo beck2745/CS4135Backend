@@ -29,3 +29,8 @@ management:
     web:
       exposure:
         include: health,info
+
+# When true, /api/admin/** requires X-Authenticated-Role: ADMIN (set by API gateway from JWT).
+sharecraft:
+  security:
+    require-admin-role-header: false
