@@ -1,0 +1,79 @@
+# ShareCraft backend: build, test, push Docker images, deploy compose to a VPS (Oracle Cloud / Ubuntu pattern from the lab guide).
+# Repository secrets (Settings → Secrets → Actions):
+#   DOCKER_USERNAME, DOCKER_PASSWORD (Hub access token), PROD_SERVER_IP, PROD_SERVER_USER, PROD_SSH_KEY
+# Server: create directory /opt/sharecraft and ensure the user can run docker compose.
+
+name: ShareCraft Production CI/CD
+
+on:
+  push:
+    branches: [main]
+
+env:
+  DOCKER_ORG: ${{ secrets.DOCKER_USERNAME }}
+
+jobs:
+  build-backends:
+    name: Build & push Spring services
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - discovery-service
+          - config-service
+          - identity-service
+          - booking-service
+          - messaging-service
+          - tutor-service
+          - admin-service
+          - api-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Test and package (${{ matrix.service }})
+        run: |
+          cd ${{ matrix.service }}
+          mvn -B clean verify
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          push: true
+          tags: ${{ env.DOCKER_ORG }}/sharecraft-${{ matrix.service }}:latest
+
+  deploy-to-prod:
+    name: Deploy to VPS
+    needs: [build-backends]
+    runs-on: ubuntu-latest
+    # Set repository variable SHARECRAFT_DEPLOY_ENABLED=true when PROD_* secrets are configured.
+    if: ${{ vars.SHARECRAFT_DEPLOY_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/opt/sharecraft"
+      - name: Pull and restart
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/sharecraft
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f

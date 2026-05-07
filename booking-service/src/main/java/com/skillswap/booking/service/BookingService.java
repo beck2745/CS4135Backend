@@ -1,13 +1,13 @@
 package com.skillswap.booking.service;
 
 import com.skillswap.booking.client.identity.IdentityClient;
+import com.skillswap.booking.events.BookingLifecycleNotifier;
 import com.skillswap.booking.exception.ConflictException;
 import com.skillswap.booking.exception.ResourceNotFoundException;
 import com.skillswap.booking.model.Booking;
 import com.skillswap.booking.model.BookingStatus;
 import com.skillswap.booking.repository.BookingRepository;
 
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 import java.time.ZoneId;
 import java.time.LocalDate;
@@ -22,10 +22,15 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final IdentityClient identityClient;
+    private final BookingLifecycleNotifier bookingLifecycleNotifier;
 
-    public BookingService(BookingRepository bookingRepository, IdentityClient identityClient) {
+    public BookingService(
+            BookingRepository bookingRepository,
+            IdentityClient identityClient,
+            BookingLifecycleNotifier bookingLifecycleNotifier) {
         this.bookingRepository = bookingRepository;
         this.identityClient = identityClient;
+        this.bookingLifecycleNotifier = bookingLifecycleNotifier;
     }
 
     private void ensureUserExists(Long userId) {
@@ -74,7 +79,9 @@ public class BookingService {
             throw new ConflictException("Invalid time slot");
         }
         booking.setStatus(BookingStatus.CONFIRMED);
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        bookingLifecycleNotifier.bookingConfirmed(saved);
+        return saved;
     }
 
     public Booking rejectBooking(Long id) {
@@ -92,7 +99,9 @@ public class BookingService {
     public Booking completeBooking(Long id) {
         Booking booking = getBookingById(id);
         booking.setStatus(BookingStatus.COMPLETED);
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        bookingLifecycleNotifier.bookingCompleted(saved);
+        return saved;
     }
 
     public List<Booking> getTutorSchedule(Long tutorId, LocalDate sessionDate) {
@@ -109,12 +118,13 @@ public void completeExpiredBookings() {
 
     LocalDateTime now = LocalDateTime.now(APP_ZONE);
 
-    for (Booking booking : activeBookings) {
-        if (hasBookingEnded(booking, now)) {
-            booking.setStatus(BookingStatus.COMPLETED);
-            bookingRepository.save(booking);
+        for (Booking booking : activeBookings) {
+            if (hasBookingEnded(booking, now)) {
+                booking.setStatus(BookingStatus.COMPLETED);
+                Booking saved = bookingRepository.save(booking);
+                bookingLifecycleNotifier.bookingCompleted(saved);
+            }
         }
-    }
 }
 
     private boolean hasBookingEnded(Booking booking, LocalDateTime now) {
