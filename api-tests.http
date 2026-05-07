@@ -86,31 +86,38 @@ GET {{base}}/api/tutors/profile/1
 Authorization: Bearer {{token}}
 
 ### Create tutor profile
+# TutorProfileWriteDTO: userId, biography (not "bio"), skills (TutorSkillDTO list).
+# TutorSkillDTO: name (not "skillName"), proficiencyLevel; optional: category, subcategory, experienceNote.
 POST {{base}}/api/tutors/profile
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
   "userId": 1,
-  "bio": "Experienced math tutor",
-  "hourlyRate": 25.00,
+  "biography": "Experienced math tutor",
   "skills": [
-    { "skillName": "Math", "proficiencyLevel": "EXPERT" }
+    {
+      "name": "Math",
+      "proficiencyLevel": "EXPERT",
+      "category": "STEM",
+      "subcategory": null,
+      "experienceNote": null
+    }
   ]
 }
 
 ### Update tutor profile
+# Same JSON shape as create; userId must match the profile owner.
 PUT {{base}}/api/tutors/profile/1
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
   "userId": 1,
-  "bio": "Updated bio",
-  "hourlyRate": 30.00,
+  "biography": "Updated biography text",
   "skills": [
-    { "skillName": "Math", "proficiencyLevel": "EXPERT" },
-    { "skillName": "Physics", "proficiencyLevel": "INTERMEDIATE" }
+    { "name": "Math", "proficiencyLevel": "EXPERT" },
+    { "name": "Physics", "proficiencyLevel": "INTERMEDIATE" }
   ]
 }
 
@@ -266,14 +273,13 @@ Authorization: Bearer {{token}}
 ###############################################
 
 ### Create a review for a tutor (after a completed booking)
+# Student identity comes from JWT via the gateway (X-Authenticated-User-Id). Do not rely on studentId in JSON.
 POST {{base}}/api/reviews
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
   "bookingId": 1,
-  "studentId": 1,
-  "tutorId": 2,
   "rating": 5,
   "comment": "Great tutor, very helpful!"
 }
