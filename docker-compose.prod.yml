@@ -1,42 +1,40 @@
-# Run from CS4135Backend/ — SkillSwap microservice scaffold
-# Tip: give Docker Desktop enough RAM (e.g. 8 GB+); many JVMs can OOM and exit.
+# ShareCraft (SkillSwap) — production-style orchestration for a VPS.
+# Build and push images via CI (see .github/workflows/production-release.yml), then on the server:
+#   export DOCKER_ORG=yourdockerhubuser
+#   export JWT_SECRET=$(openssl rand -base64 32)
+#   docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+#
+# Only the API gateway is published to the host; other services communicate on the Compose network
+# by DNS name (matches the lab deployment guide).
 
 services:
   discovery-service:
-    build: ./discovery-service
+    image: ${DOCKER_ORG}/sharecraft-discovery-service:latest
     restart: unless-stopped
-    ports:
-      - "8761:8761"
 
   config-service:
-    build: ./config-service
+    image: ${DOCKER_ORG}/sharecraft-config-service:latest
     restart: unless-stopped
-    ports:
-      - "8888:8888"
     depends_on:
       - discovery-service
     environment:
       SPRING_PROFILES_ACTIVE: native,docker
-      JWT_SECRET: changeit-changeit-changeit-changeit-32b
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in environment}
 
   identity-service:
-    build: ./identity-service
+    image: ${DOCKER_ORG}/sharecraft-identity-service:latest
     restart: unless-stopped
-    ports:
-      - "8081:8081"
     depends_on:
       - discovery-service
       - config-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: changeit-changeit-changeit-changeit-32b
+      JWT_SECRET: ${JWT_SECRET}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
 
   booking-service:
-    build: ./booking-service
+    image: ${DOCKER_ORG}/sharecraft-booking-service:latest
     restart: unless-stopped
-    ports:
-      - "8082:8082"
     depends_on:
       - discovery-service
       - config-service
@@ -45,10 +43,8 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
 
   messaging-service:
-    build: ./messaging-service
+    image: ${DOCKER_ORG}/sharecraft-messaging-service:latest
     restart: unless-stopped
-    ports:
-      - "8083:8083"
     depends_on:
       - discovery-service
       - config-service
@@ -57,10 +53,8 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
 
   tutor-service:
-    build: ./tutor-service
+    image: ${DOCKER_ORG}/sharecraft-tutor-service:latest
     restart: unless-stopped
-    ports:
-      - "8084:8084"
     depends_on:
       - discovery-service
       - config-service
@@ -69,10 +63,8 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
 
   admin-service:
-    build: ./admin-service
+    image: ${DOCKER_ORG}/sharecraft-admin-service:latest
     restart: unless-stopped
-    ports:
-      - "8085:8085"
     depends_on:
       - discovery-service
       - config-service
@@ -81,7 +73,7 @@ services:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
 
   api-gateway:
-    build: ./api-gateway
+    image: ${DOCKER_ORG}/sharecraft-api-gateway:latest
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -95,5 +87,5 @@ services:
       - admin-service
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      JWT_SECRET: changeit-changeit-changeit-changeit-32b
+      JWT_SECRET: ${JWT_SECRET}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/

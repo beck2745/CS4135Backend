@@ -8,3 +8,7 @@ eureka:
 spring:
   config:
     import: optional:configserver:http://config-service:8888
+
+sharecraft:
+  security:
+    require-admin-role-header: true

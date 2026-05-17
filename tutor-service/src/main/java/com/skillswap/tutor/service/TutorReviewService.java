@@ -5,6 +5,7 @@ import com.skillswap.tutor.client.booking.BookingInternalDTO;
 import com.skillswap.tutor.dto.CreateTutorReviewRequest;
 import com.skillswap.tutor.exception.ResourceNotFoundException;
 import com.skillswap.tutor.model.TutorReview;
+import com.skillswap.tutor.repository.TutorProfileRepository;
 import com.skillswap.tutor.repository.TutorReviewRepository;
 import feign.FeignException;
 import org.springframework.stereotype.Service;
@@ -15,18 +16,24 @@ import java.util.List;
 public class TutorReviewService {
 
     private final TutorReviewRepository tutorReviewRepository;
+    private final TutorProfileRepository tutorProfileRepository;
     private final BookingInternalClient bookingInternalClient;
 
     public TutorReviewService(
             TutorReviewRepository tutorReviewRepository,
+            TutorProfileRepository tutorProfileRepository,
             BookingInternalClient bookingInternalClient) {
         this.tutorReviewRepository = tutorReviewRepository;
+        this.tutorProfileRepository = tutorProfileRepository;
         this.bookingInternalClient = bookingInternalClient;
     }
 
-    public TutorReview createReview(CreateTutorReviewRequest request) {
+    /**
+     * @param authenticatedStudentUserId student id from trusted gateway header (JWT), never from the request body
+     */
+    public TutorReview createReview(CreateTutorReviewRequest request, Long authenticatedStudentUserId) {
         BookingInternalDTO booking = fetchBooking(request.getBookingId());
-        if (!booking.studentId().equals(request.getStudentId())) {
+        if (!booking.studentId().equals(authenticatedStudentUserId)) {
             throw new IllegalArgumentException("You can only review your own booking");
         }
         if (!"COMPLETED".equals(booking.status())) {
@@ -46,7 +53,19 @@ public class TutorReviewService {
         review.setTutorId(booking.tutorId());
         review.setRating(rating);
         review.setComment(request.getComment());
-        return tutorReviewRepository.save(review);
+        TutorReview saved = tutorReviewRepository.save(review);
+        refreshTutorAverageRating(booking.tutorId());
+        return saved;
+    }
+
+    private void refreshTutorAverageRating(Long tutorUserId) {
+        tutorProfileRepository
+                .findByUserId(tutorUserId)
+                .ifPresent(
+                        profile -> {
+                            profile.setAverageRating(getAverageRating(tutorUserId));
+                            tutorProfileRepository.save(profile);
+                        });
     }
 
     private BookingInternalDTO fetchBooking(Long bookingId) {
