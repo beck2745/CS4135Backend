@@ -72,11 +72,19 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
 
+  frontend:
+    image: ${DOCKER_ORG}/sharecraft-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+
   api-gateway:
     image: ${DOCKER_ORG}/sharecraft-api-gateway:latest
     restart: unless-stopped
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     depends_on:
       - discovery-service
       - config-service
