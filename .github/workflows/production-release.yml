@@ -74,6 +74,16 @@ jobs:
           script: |
             set -e
             cd /opt/sharecraft
+            
+            cat > .env <<EOF
+            DOCKER_ORG=${{ secrets.DOCKER_USERNAME }}
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            EOF
+            
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
             docker image prune -f
