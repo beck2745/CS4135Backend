@@ -4,17 +4,17 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
   datasource:
-    url: jdbc:h2:file:./data/identitydb;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
-    driverClassName: org.h2.Driver
-    username: sa
-    password: ""
-  h2:
-      console:
-        enabled: true
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.sjrjqxmiqpmvcagrribh.supabase.co:5432/postgres?sslmode=require}
+    username: ${SUPABASE_DB_USER:postgres}
+    password: ${SUPABASE_DB_PASSWORD:RZCjEf050QldV92z}
+    driver-class-name: org.postgresql.Driver
   jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
       hibernate:
-        ddl-auto: update
-      show-sql: false
+        default_schema: identity_svc
+    show-sql: false
 
   server:
     port: 8081
