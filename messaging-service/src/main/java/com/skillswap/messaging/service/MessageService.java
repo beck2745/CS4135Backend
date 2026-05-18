@@ -16,7 +16,9 @@ import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class MessageService {
@@ -25,6 +27,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final BookingClient bookingClient;
     private final EntityManager entityManager;
+    private final Map<Long, BookingInternalDTO> bookingCache = new ConcurrentHashMap<>();
 
     public MessageService(
             MessageThreadRepository threadRepository,
@@ -49,9 +52,17 @@ public class MessageService {
         }
     }
 
+    private BookingInternalDTO fetchBookingCached(Long bookingId) {
+        BookingInternalDTO booking = bookingCache.computeIfAbsent(bookingId, this::fetchBooking);
+        if (!"CONFIRMED".equals(booking.status())) {
+            bookingCache.remove(bookingId);
+        }
+        return booking;
+    }
+
    @Transactional
     public MessageThread createThread(Long bookingId) {
-        BookingInternalDTO booking = fetchBooking(bookingId);
+        BookingInternalDTO booking = fetchBookingCached(bookingId);
         if (!"CONFIRMED".equals(booking.status())) {
             throw new ConflictException("A message thread can only be created for a CONFIRMED booking");
         }
@@ -82,7 +93,7 @@ public class MessageService {
 
     public Message sendMessage(Long threadId, Long senderId, String content) {
         MessageThread thread = getThreadById(threadId);
-        BookingInternalDTO booking = fetchBooking(thread.getBookingId());
+        BookingInternalDTO booking = fetchBookingCached(thread.getBookingId());
         boolean isParticipant = senderId.equals(booking.studentId()) || senderId.equals(booking.tutorId());
         if (!isParticipant) {
             throw new ConflictException("Only the student or tutor of this booking can send messages");

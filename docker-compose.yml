@@ -27,10 +27,14 @@ services:
     depends_on:
       - discovery-service
       - config-service
+    env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       JWT_SECRET: changeit-changeit-changeit-changeit-32b
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL}
+      SUPABASE_DB_USER: ${SUPABASE_DB_USER}
+      SUPABASE_DB_PASSWORD: ${SUPABASE_DB_PASSWORD}
 
   booking-service:
     build: ./booking-service
@@ -40,9 +44,13 @@ services:
     depends_on:
       - discovery-service
       - config-service
+    env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL}
+      SUPABASE_DB_USER: ${SUPABASE_DB_USER}
+      SUPABASE_DB_PASSWORD: ${SUPABASE_DB_PASSWORD}
 
   messaging-service:
     build: ./messaging-service
@@ -52,9 +60,13 @@ services:
     depends_on:
       - discovery-service
       - config-service
+    env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL}
+      SUPABASE_DB_USER: ${SUPABASE_DB_USER}
+      SUPABASE_DB_PASSWORD: ${SUPABASE_DB_PASSWORD}
 
   tutor-service:
     build: ./tutor-service
@@ -64,9 +76,13 @@ services:
     depends_on:
       - discovery-service
       - config-service
+    env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL}
+      SUPABASE_DB_USER: ${SUPABASE_DB_USER}
+      SUPABASE_DB_PASSWORD: ${SUPABASE_DB_PASSWORD}
 
   admin-service:
     build: ./admin-service
@@ -76,9 +92,13 @@ services:
     depends_on:
       - discovery-service
       - config-service
+    env_file: .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL}
+      SUPABASE_DB_USER: ${SUPABASE_DB_USER}
+      SUPABASE_DB_PASSWORD: ${SUPABASE_DB_PASSWORD}
 
   api-gateway:
     build: ./api-gateway
