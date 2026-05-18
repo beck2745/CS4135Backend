@@ -3,6 +3,7 @@ package com.skillswap.messaging.web;
 import com.skillswap.messaging.model.Message;
 import com.skillswap.messaging.model.MessageThread;
 import com.skillswap.messaging.service.MessageService;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,14 +15,25 @@ import java.util.Map;
 public class MessageController {
 
     private final MessageService messageService;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
-    public MessageController(MessageService messageService) {
+    public MessageController(MessageService messageService, CircuitBreakerRegistry circuitBreakerRegistry) {
         this.messageService = messageService;
+        this.circuitBreakerRegistry = circuitBreakerRegistry;
     }
 
     @GetMapping("/health")
     public String health() {
         return "UP";
+    }
+
+    @GetMapping("/health/detail")
+    public Map<String, Object> detailHealth() {
+        return Map.of(
+            "service", "messaging-service",
+            "circuit", circuitBreakerRegistry.circuitBreaker("booking-service").getState().name(),
+            "status", "UP"
+        );
     }
 
     @PostMapping("/threads")

@@ -42,16 +42,8 @@ public class MessageService {
     
 
     private BookingInternalDTO fetchBooking(Long bookingId) {
-        if (bookingCache.containsKey(bookingId)) {
-            return bookingCache.get(bookingId);
-        }
-
         try {
-            BookingInternalDTO booking = bookingClient.getBooking(bookingId);
-            if ("CONFIRMED".equals(booking.status())) {
-                bookingCache.put(bookingId, booking);
-            }
-            return booking;
+            return bookingClient.getBooking(bookingId);
         } catch (FeignException e) {
             if (e.status() == 404) {
                 throw new ResourceNotFoundException("Booking not found");
@@ -60,9 +52,17 @@ public class MessageService {
         }
     }
 
+    private BookingInternalDTO fetchBookingCached(Long bookingId) {
+        BookingInternalDTO booking = bookingCache.computeIfAbsent(bookingId, this::fetchBooking);
+        if (!"CONFIRMED".equals(booking.status())) {
+            bookingCache.remove(bookingId);
+        }
+        return booking;
+    }
+
    @Transactional
     public MessageThread createThread(Long bookingId) {
-        BookingInternalDTO booking = fetchBooking(bookingId);
+        BookingInternalDTO booking = fetchBookingCached(bookingId);
         if (!"CONFIRMED".equals(booking.status())) {
             throw new ConflictException("A message thread can only be created for a CONFIRMED booking");
         }
@@ -93,7 +93,7 @@ public class MessageService {
 
     public Message sendMessage(Long threadId, Long senderId, String content) {
         MessageThread thread = getThreadById(threadId);
-        BookingInternalDTO booking = fetchBooking(thread.getBookingId());
+        BookingInternalDTO booking = fetchBookingCached(thread.getBookingId());
         boolean isParticipant = senderId.equals(booking.studentId()) || senderId.equals(booking.tutorId());
         if (!isParticipant) {
             throw new ConflictException("Only the student or tutor of this booking can send messages");
