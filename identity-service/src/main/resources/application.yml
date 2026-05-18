@@ -4,7 +4,7 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
   datasource:
-    url: ${SUPABASE_DB_URL:jdbc:postgresql://db.sjrjqxmiqpmvcagrribh.supabase.co:5432/postgres?sslmode=require}
+    url: ${SUPABASE_DB_URL:jdbc:postgresql://aws-0-eu-west-1.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0}
     username: ${SUPABASE_DB_USER:postgres}
     password: ${SUPABASE_DB_PASSWORD:RZCjEf050QldV92z}
     driver-class-name: org.postgresql.Driver
